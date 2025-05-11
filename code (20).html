@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Color Fall</title> 
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #1a1a1a; 
+            color: #e0e0e0;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+
+        .screen {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            box-sizing: border-box;
+            width: 100%;
+            max-width: 800px;
+            text-align: center;
+        }
+
+        .screen.active {
+            display: flex !important; 
+        }
+
+        #gameScreen {
+            position: relative;
+        }
+
+        canvas {
+            border: 1px solid #444;
+            background: linear-gradient(to bottom, #22222a, #111115); 
+            cursor: none;
+        }
+
+        #uiOverlay {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            right: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center; 
+            font-size: 1.2em;
+            color: #fff;
+            pointer-events: none;
+            background-color: rgba(0,0,0,0.3);
+            padding: 8px 15px; 
+            border-radius: 5px;
+        }
+        #uiOverlay .game-stats {
+            display: flex;
+            align-items: center; 
+        }
+        #uiOverlay .game-stats > div {
+            margin-right: 25px; 
+        }
+        #uiOverlay .game-stats > div:last-child {
+            margin-right: 0;
+        }
+        #quitGameBtn {
+            pointer-events: auto;
+            padding: 6px 12px; 
+            font-size: 0.9em; 
+            background-color: #dc3545;
+            align-self: center; 
+        }
+        #quitGameBtn:hover {
+            background-color: #c82333;
+        }
+
+        #powerupIconsContainer {
+            position: absolute;
+            top: 80px; 
+            left: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            pointer-events: none;
+        }
+        .powerup-icon {
+            width: 40px;
+            height: 40px;
+            border: 2px solid #555;
+            background-color: rgba(0,0,0,0.4);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #777; 
+            border-radius: 5px;
+            transition: color 0.2s, border-color 0.2s, box-shadow 0.2s;
+        }
+        .powerup-icon.active {
+            color: #fff; 
+            border-color: #00ff00;
+            box-shadow: 0 0 8px #00ff00;
+        }
+        .powerup-icon.flashing {
+            animation: flashPowerup 0.5s infinite alternate;
+        }
+        @keyframes flashPowerup {
+            from { color: #fff; border-color: #00ff00; box-shadow: 0 0 8px #00ff00; opacity: 1; }
+            to   { color: #777; border-color: #555; box-shadow: none; opacity: 0.6; }
+        }
+        
+        #slowFallIcon.active { color: #61dafb; border-color: #61dafb; box-shadow: 0 0 8px #61dafb;}
+        #wideBucketIcon.active { color: #FFDC00; border-color: #FFDC00; box-shadow: 0 0 8px #FFDC00;}
+        #oneColorIcon.active { color: #F012BE; border-color: #F012BE; box-shadow: 0 0 8px #F012BE;}
+        #doublePointsIcon.active { color: #FF851B; border-color: #FF851B; box-shadow: 0 0 8px #FF851B;}
+
+
+        #gameOverScreen {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(0, 0, 0, 0.85);
+            padding: 30px;
+            border-radius: 10px;
+            border: 1px solid #555;
+            z-index: 100;
+        }
+        #newHighScoreText {
+            color: #FFDC00; 
+            font-size: 1.3em;
+            margin-bottom: 15px;
+        }
+        #gameOverScreen h2 {
+            margin-bottom: 25px; 
+        }
+        #gameOverScreen p {
+            margin-bottom: 15px; 
+        }
+
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            font-size: 1em;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 10px;
+            transition: background-color 0.2s;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .keybindBtn {
+            min-width: 80px;
+            text-align: center;
+        }
+         .keybindBtn:disabled { background-color: #555; cursor: not-allowed;}
+
+
+        h1, h2 {
+            color: #61dafb;
+        }
+
+        #settingsScreen div, #highScoresScreen li, #howToPlayScreenContent p, #howToPlayScreenContent ul {
+            margin-bottom: 15px;
+            font-size: 1.1em;
+        }
+        #howToPlayScreen {
+            max-height: 80vh; 
+            overflow-y: hidden; 
+        }
+        #howToPlayScreenContent {
+            max-height: calc(80vh - 120px); 
+            overflow-y: auto; 
+            padding-right: 15px; 
+            text-align: left; 
+        }
+        #howToPlayScreenContent ul {
+            list-style-position: inside;
+            max-width: 500px; 
+            margin-left: auto;
+            margin-right: auto;
+        }
+        #settingsScreen label {
+            margin-right: 10px;
+        }
+        #sensitivitySlider {
+            vertical-align: middle;
+        }
+        #highScoresList {
+            list-style-type: decimal;
+            padding-left: 40px;
+            text-align: left;
+            max-width: 300px;
+            margin: 0 auto;
+        }
+        #highScoresList li {
+            background-color: #333;
+            padding: 5px 10px;
+            border-radius: 3px;
+            margin-bottom: 5px;
+        }
+
+        #pauseOverlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.7);
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 2em;
+            z-index: 99;
+            text-align: center;
+        }
+
+        
+        .powerup-text-display {
+            position: absolute;
+            left: 50%;
+            top: 40%; 
+            transform: translateX(-50%);
+            font-size: 2.5em; 
+            font-weight: bold;
+            color: #FFDC00; 
+            text-shadow: 0 0 5px black;
+            pointer-events: none;
+            z-index: 101;
+            opacity: 1;
+            animation: powerupTextAnim 1s forwards;
+        }
+
+        @keyframes powerupTextAnim {
+            0% { transform: translateX(-50%) scale(1); opacity: 1; }
+            50% { transform: translateX(-50%) scale(1.1); opacity: 1; } 
+            100% { transform: translateX(-50%) scale(1.3); opacity: 0; }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="homeScreen" class="screen active">
+        <h1>Color Fall</h1> 
+        <button id="startGameBtn">Start New Game</button>
+        <button id="howToPlayBtn">How to Play</button>
+        <button id="settingsBtn">Settings</button>
+        <button id="highScoresBtn">High Scores</button>
+    </div>
+
+    <div id="gameScreen" class="screen">
+        <canvas id="gameCanvas"></canvas>
+        <div id="uiOverlay">
+            <div class="game-stats">
+                <div>Score: <span id="scoreDisplay">0</span></div>
+                <div>Time: <span id="timeDisplay">00:00.0</span></div>
+                <div>Lives: <span id="livesDisplay">❤❤❤</span></div>
+            </div>
+            <button id="quitGameBtn">Quit Run</button>
+        </div>
+        <div id="powerupIconsContainer">
+            <div class="powerup-icon" id="slowFallIcon" title="Slow Fall">⬆</div>
+            <div class="powerup-icon" id="wideBucketIcon" title="Wide Bucket">⎵</div>
+            <div class="powerup-icon" id="oneColorIcon" title="One Color">🔵</div>
+            <div class="powerup-icon" id="doublePointsIcon" title="Double Points">x2</div>
+        </div>
+        <div id="gameOverScreen" style="display:none;">
+            <div id="newHighScoreText" style="display:none;">New High Score!</div>
+            <h2>Game Over!</h2>
+            <p>Final Score: <span id="finalScoreDisplay">0</span></p>
+            <p>Total Time: <span id="finalTimeDisplay">00:00.0</span></p>
+            <button id="playAgainBtn">Play Again</button>
+            <button id="gameOverToHomeBtn">Back to Home</button>
+        </div>
+        <div id="pauseOverlay" style="display:none;">
+            Game Paused<br><small>(Click to resume)</small> 
+        </div>
+    </div>
+
+    <div id="settingsScreen" class="screen">
+        <h2>Settings</h2>
+        <div>
+            <label for="sensitivitySlider">Bucket Sensitivity:</label>
+            <input type="range" id="sensitivitySlider" min="1" max="10" value="5">
+            <span id="sensitivityValueDisplay">5</span>
+        </div>
+        <div>
+            <label>Move Left: </label>
+            <button class="keybindBtn" id="keybindLeftBtn">A</button>
+        </div>
+        <div>
+            <label>Move Right: </label>
+            <button class="keybindBtn" id="keybindRightBtn">D</button>
+        </div>
+        <div>
+            <label>Max Speed Toggle: </label>
+            <button class="keybindBtn" id="keybindMaxSpeedBtn">W</button>
+        </div>
+        
+        <button id="exitSettingsBtn">Back to Home</button>
+    </div>
+
+    <div id="highScoresScreen" class="screen">
+        <h2>High Scores</h2>
+        <ol id="highScoresList"></ol>
+        <button id="highScoresToHomeBtn">Back to Home</button>
+    </div>
+
+    <div id="howToPlayScreen" class="screen">
+        <h2>How to Play</h2>
+        <div id="howToPlayScreenContent">
+             <!-- Content from your "code (5).html" file -->
+            <p><strong>Objective:</strong> Score as many points as possible before running out of lives!</p>
+            <h3>Controls:</h3>
+            <ul>
+                <li>Use your mouse to move the <strong>Color Wheel</strong>.</li>
+                <li>Use the 'A' and 'D' keys (or your custom keybinds) to move the bucket at the bottom.</li>
+                <li>Hold 'W' (or custom keybind) to temporarily set droppers to max movement and drop speed.</li>
+            </ul>
+            <h3>Gameplay:</h3>
+            <ul>
+                <li>Two droppers at the top release balls. They move side-to-side and speed up over time.</li>
+                <li>The primary dropper releases colored balls (Red, Green, Blue) or rarely, a Yellow Powerup Ball.</li>
+                <li>The secondary dropper releases White balls or rarely, a Yellow Powerup Ball.</li>
+                <li>Balls fall at random speeds and sizes, and sway slightly.</li>
+                <li>Droppers also drop balls more frequently over time.</li>
+            </ul>
+            <h3>Scoring:</h3>
+            <ul>
+                <li>Catch a colored or white ball in the bucket (on any of its surfaces): <strong>+1 point</strong>.</li>
+                <li>Match the colored segment of your <strong>Color Wheel</strong> with a ball of the same color: <strong>+3 points</strong>.
+                    <ul>
+                        <li>Red segment (top-left) with Red ball.</li>
+                        <li>Green segment (top-right) with Green ball.</li>
+                        <li>Blue segment (bottom) with Blue ball.</li>
+                    </ul>
+                </li>
+                <li>Touch a White ball with any part of your <strong>Color Wheel</strong>: <strong>+1 point</strong>.</li>
+                <li>Powerup: Double Points - all scores are doubled while active.</li>
+            </ul>
+            <h3>Powerups (Yellow Balls):</h3>
+            <p>Collect a Yellow Ball with the bucket or <strong>Color Wheel</strong> (any segment) to get a random powerup:</p>
+            <ul>
+                <li><strong>Gravity Slowed:</strong> Balls fall at 65% speed for 8 seconds.</li>
+                <li><strong>Enlarged Bucket:</strong> Bucket becomes twice as wide for 8 seconds.</li>
+                <li><strong>One Color:</strong> All primary (colored) balls drop as a single random color (Red, Green, or Blue) for 8 seconds.</li>
+                <li><strong>Double Points:</strong> All points earned are doubled for 8 seconds.</li>
+                <li><strong>+3 Lives:</strong> Instantly gain 3 extra lives (no duration).</li>
+            </ul>
+            <p>Active timed powerups are shown by icons on the left. They flash when about to expire. Collecting the same powerup resets its duration.</p>
+            <h3>Losing Lives:</h3>
+            <p>You start with 3 lives. You lose a life if:</p>
+            <ul>
+                <li>A colored ball hits a non-matching color segment of your <strong>Color Wheel</strong>.</li>
+                <li>A ball falls to the bottom of the screen without being caught by the <strong>Color Wheel</strong> or the bucket.</li>
+            </ul>
+            <p>The game ends when you run out of lives. If you set a new personal best, it will be highlighted!</p>
+            <p>If you switch tabs or unfocus the game, it will pause automatically. Click the game area to resume.</p>
+        </div>
+        <button id="howToPlayToHomeBtn">Back to Home</button>
+    </div>
+
+
+<script>
+// --- Constants and Game Variables ---
+// (Copied from your "code (5).html")
+let MAX_SCALING_TIME_MS = 2 * 60 * 1000; 
+let canvas, ctx;
+let gameWidth, gameHeight;
+let score = 0, lives = 3, elapsedGameTimeMs = 0;
+let gameRunning = false, gamePaused = false;
+let animationFrameId, lastTime = 0, timePausedStarted = 0; 
+let dropper1, dropper2; 
+const balls = [];
+let bucket, playerCursor;
+const colorWheelParticles = []; 
+const BALL_COLORS = ['#FF4136', '#2ECC40', '#0074D9']; 
+const BALL_COLOR_NAMES = ['red', 'green', 'blue'];
+const POWERUP_BALL_COLOR = '#FFEB3B'; 
+const WHITE_BALL_COLOR = '#FFFFFF';
+let BALL_RADIUS_BASE; 
+const MIN_BALL_FALL_TIME_S = 3.0; 
+const MAX_BALL_FALL_TIME_S = 7.0; 
+const BALL_SWAY_AMPLITUDE_RATIO = 0.03; 
+const BALL_SWAY_SPEED = 1.5; 
+const DROPPER_COLOR = 'gray';
+let DROPPER_WIDTH_BOTTOM; 
+const DROPPER_HEIGHT = 30;
+const DROPPER_TOP_WIDTH_RATIO = 0.5; 
+let INITIAL_DROPPER_TIME_PER_SCREEN_S = 7; 
+const FINAL_DROPPER_TIME_PER_SCREEN_S = 2;
+let INITIAL_BALL_DROP_INTERVAL_MS = 1000; 
+let FINAL_BALL_DROP_INTERVAL_MS = 250;   
+const BUCKET_COLOR = 'gray';
+const BUCKET_HEIGHT = 20;
+const BUCKET_BASE_WIDTH_RATIO_NORMAL = 0.15; 
+const BUCKET_BASE_WIDTH_RATIO_WIDE = 0.30; 
+let currentBucketBaseWidthRatio = BUCKET_BASE_WIDTH_RATIO_NORMAL;
+const BUCKET_SIDE_ANGLE = Math.PI / 8; 
+let BUCKET_SENSITIVITY = 5; 
+let MIN_BUCKET_TRAVERSE_TIME_S = 1.0; 
+let MAX_BUCKET_TRAVERSE_TIME_S = 5;   
+let currentBucketSpeedPPS;
+let PLAYER_CURSOR_OUTER_RADIUS, PLAYER_CURSOR_RING_THICKNESS;
+const PLAYER_CURSOR_OUTLINE_COLORS = ['#FF4136', '#2ECC40', '#0074D9'];
+const PLAYER_CURSOR_SEGMENT_ANGLES = { green: { start: -Math.PI / 6, end: Math.PI / 2 }, red: { start: Math.PI / 2, end: 7 * Math.PI / 6 }, blue: { start: 7 * Math.PI / 6, end: 11 * Math.PI / 6}};
+const keysPressed = {};
+let keybindLeft = 'a', keybindRight = 'd', keybindMaxSpeed = 'w'; 
+let listeningForKeybind = null;
+const POWERUP_DURATION_MS = 8000; 
+const POWERUP_FLASH_THRESHOLD_MS = 2000;
+const activePowerups = { slowFall: { active: false, endTime: 0, originalValue: 1.0 }, wideBucket: { active: false, endTime: 0 }, oneColor: { active: false, endTime: 0, color: null }, doublePoints: { active: false, endTime: 0 }};
+
+
+// DOM Elements - Declare globally
+// (Copied from your code (5).html)
+let screens = {};
+let scoreDisplay, timeDisplay, livesDisplay; 
+let finalScoreDisplay, finalTimeDisplay;
+let sensitivitySlider, sensitivityValueDisplay;
+let keybindLeftBtn, keybindRightBtn, keybindMaxSpeedBtn; 
+let highScoresListElem;
+let quitGameBtn, pauseOverlay;
+let newHighScoreTextElem;
+let powerupIconElems = {};
+let audioCtx;
+
+
+// --- Initialization ---
+window.onload = () => {
+    // (Copied from your code (5).html)
+    canvas = document.getElementById('gameCanvas');
+    ctx = canvas.getContext('2d');
+    gameWidth = canvas.width = Math.min(800, window.innerWidth * 0.9);
+    gameHeight = canvas.height = Math.min(600, window.innerHeight * 0.8);
+    PLAYER_CURSOR_OUTER_RADIUS = gameWidth * 0.05; 
+    PLAYER_CURSOR_RING_THICKNESS = PLAYER_CURSOR_OUTER_RADIUS * 0.35;
+    BALL_RADIUS_BASE = (PLAYER_CURSOR_OUTER_RADIUS - PLAYER_CURSOR_RING_THICKNESS) / 3.5; 
+    DROPPER_WIDTH_BOTTOM = BALL_RADIUS_BASE * 2 * 1.4; 
+    screens.home = document.getElementById('homeScreen');
+    screens.game = document.getElementById('gameScreen');
+    screens.settings = document.getElementById('settingsScreen');
+    screens.highScores = document.getElementById('highScoresScreen');
+    screens.gameOver = document.getElementById('gameOverScreen');
+    screens.howToPlay = document.getElementById('howToPlayScreen');
+    scoreDisplay = document.getElementById('scoreDisplay');
+    timeDisplay = document.getElementById('timeDisplay');
+    livesDisplay = document.getElementById('livesDisplay');
+    finalScoreDisplay = document.getElementById('finalScoreDisplay');
+    finalTimeDisplay = document.getElementById('finalTimeDisplay');
+    sensitivitySlider = document.getElementById('sensitivitySlider');
+    sensitivityValueDisplay = document.getElementById('sensitivityValueDisplay');
+    keybindLeftBtn = document.getElementById('keybindLeftBtn');
+    keybindRightBtn = document.getElementById('keybindRightBtn');
+    keybindMaxSpeedBtn = document.getElementById('keybindMaxSpeedBtn');
+    highScoresListElem = document.getElementById('highScoresList');
+    quitGameBtn = document.getElementById('quitGameBtn');
+    pauseOverlay = document.getElementById('pauseOverlay');
+    newHighScoreTextElem = document.getElementById('newHighScoreText');
+    powerupIconElems.slowFall = document.getElementById('slowFallIcon');
+    powerupIconElems.wideBucket = document.getElementById('wideBucketIcon');
+    powerupIconElems.oneColor = document.getElementById('oneColorIcon');
+    powerupIconElems.doublePoints = document.getElementById('doublePointsIcon');
+    loadSettings();
+    updateBucketSpeed();
+    setupEventListeners(); 
+    showScreen('home');
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('blur', handleFocusChange);
+    window.addEventListener('focus', handleFocusChange);
+};
+
+// --- Pause/Resume Logic ---
+// (Copied from your code (5).html)
+function handleVisibilityChange() { if (document.hidden && gameRunning && !gamePaused) { pauseGame(); } }
+function handleFocusChange(event) { if (event.type === 'blur' && gameRunning && !gamePaused) { pauseGame(); } }
+function pauseGame() { if (!gameRunning || gamePaused) return; gamePaused = true; timePausedStarted = performance.now(); if (animationFrameId) cancelAnimationFrame(animationFrameId); if(pauseOverlay) pauseOverlay.style.display = 'flex'; playSound('click'); }
+function resumeGame() { if (!gameRunning || !gamePaused) return; gamePaused = false; const timeWasPaused = performance.now() - timePausedStarted; lastTime += timeWasPaused; if(pauseOverlay) pauseOverlay.style.display = 'none'; animationFrameId = requestAnimationFrame(gameLoop); playSound('click'); }
+
+// --- Audio Logic ---
+// (Copied from your code (5).html)
+function initAudio() { if (!audioCtx) { try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); if (audioCtx.state === 'suspended') { audioCtx.resume(); } } catch (e) { console.error("Web Audio API is not supported in this browser", e); return false; } } return true; }
+function playSound(type) { if (!audioCtx || audioCtx.state === 'suspended' || gamePaused) return; const oscillator = audioCtx.createOscillator(), gainNode = audioCtx.createGain(); oscillator.connect(gainNode); gainNode.connect(audioCtx.destination); const now = audioCtx.currentTime; switch (type) { case 'click': oscillator.type = 'triangle'; oscillator.frequency.setValueAtTime(1000, now); gainNode.gain.setValueAtTime(0.1, now); gainNode.gain.exponentialRampToValueAtTime(0.0001, now + 0.1); oscillator.start(now); oscillator.stop(now + 0.1); break; case 'drop': oscillator.type = 'sine'; oscillator.frequency.setValueAtTime(200, now); gainNode.gain.setValueAtTime(0.15, now); gainNode.gain.exponentialRampToValueAtTime(0.0001, now + 0.2); oscillator.start(now); oscillator.stop(now + 0.2); break; case 'collectGood': oscillator.type = 'sine'; oscillator.frequency.setValueAtTime(660, now); gainNode.gain.setValueAtTime(0.2, now); gainNode.gain.exponentialRampToValueAtTime(0.0001, now + 0.15); oscillator.start(now); oscillator.stop(now + 0.15); break; case 'collectBucket': oscillator.type = 'square'; oscillator.frequency.setValueAtTime(440, now); gainNode.gain.setValueAtTime(0.15, now); gainNode.gain.exponentialRampToValueAtTime(0.0001, now + 0.15); oscillator.start(now); oscillator.stop(now + 0.15); break; case 'loseLife': oscillator.type = 'sawtooth'; oscillator.frequency.setValueAtTime(150, now); oscillator.frequency.exponentialRampToValueAtTime(80, now + 0.3); gainNode.gain.setValueAtTime(0.25, now); gainNode.gain.exponentialRampToValueAtTime(0.0001, now + 0.3); oscillator.start(now); oscillator.stop(now + 0.3); break; case 'powerupCollect': oscillator.type = 'triangle'; oscillator.frequency.setValueAtTime(880, now); oscillator.frequency.exponentialRampToValueAtTime(1320, now + 0.1); gainNode.gain.setValueAtTime(0.25, now); gainNode.gain.exponentialRampToValueAtTime(0.0001, now + 0.3); oscillator.start(now); oscillator.stop(now + 0.3); break;}}
+
+// --- Screen Management ---
+// (Copied from your code (5).html)
+function showScreen(screenName) { if (!screens.home) return; Object.values(screens).forEach(s => { if(s) s.classList.remove('active'); }); if (screenName === 'gameOver') { if(screens.game) screens.game.classList.add('active'); if(screens.gameOver) screens.gameOver.style.display = 'flex';} else { if(screens[screenName]) screens[screenName].classList.add('active'); if(screens.gameOver) screens.gameOver.style.display = 'none'; } if (screenName !== 'game' && screenName !== 'gameOver') { playSound('click');} if (screenName === 'game' && pauseOverlay) pauseOverlay.style.display = 'none'; }
+
+// --- Event Listeners ---
+// (Copied from your code (5).html)
+function setupEventListeners() { if (!document.getElementById('startGameBtn')) { console.error("DOM not ready for event listeners or button ID mismatch."); return; } document.getElementById('startGameBtn').addEventListener('click', startGame); document.getElementById('settingsBtn').addEventListener('click', () => showScreen('settings')); document.getElementById('highScoresBtn').addEventListener('click', () => { loadHighScores(); showScreen('highScores'); }); document.getElementById('howToPlayBtn').addEventListener('click', () => showScreen('howToPlay')); sensitivitySlider.addEventListener('input', (e) => { BUCKET_SENSITIVITY = parseInt(e.target.value); sensitivityValueDisplay.textContent = BUCKET_SENSITIVITY; updateBucketSpeed(); saveSettings(); playSound('click'); }); keybindLeftBtn.addEventListener('click', () => startListeningForKeybind('left')); keybindRightBtn.addEventListener('click', () => startListeningForKeybind('right')); keybindMaxSpeedBtn.addEventListener('click', () => startListeningForKeybind('maxSpeed')); document.getElementById('exitSettingsBtn').addEventListener('click', () => showScreen('home')); document.getElementById('highScoresToHomeBtn').addEventListener('click', () => showScreen('home')); document.getElementById('howToPlayToHomeBtn').addEventListener('click', () => showScreen('home')); document.getElementById('playAgainBtn').addEventListener('click', startGame); document.getElementById('gameOverToHomeBtn').addEventListener('click', () => showScreen('home')); quitGameBtn.addEventListener('click', () => { if (gameRunning) { gameRunning = false; gamePaused = false; if (animationFrameId) cancelAnimationFrame(animationFrameId); showScreen('home'); playSound('click'); } }); pauseOverlay.addEventListener('click', resumeGame); window.addEventListener('keydown', (e) => { if (listeningForKeybind) { setKeybind(e.key); } else if (gameRunning && !gamePaused) { keysPressed[e.key.toLowerCase()] = true;} }); window.addEventListener('keyup', (e) => { if (gameRunning && !gamePaused) { keysPressed[e.key.toLowerCase()] = false;} }); document.addEventListener('mousemove', (e) => { if (gameRunning && !gamePaused && playerCursor) { const rect = canvas.getBoundingClientRect(); playerCursor.x = e.clientX - rect.left; playerCursor.y = e.clientY - rect.top; addColorWheelParticle(playerCursor.x, playerCursor.y); } });}
+
+// --- Settings & High Scores ---
+// (Copied from your code (5).html)
+function loadSettings() { const savedSensitivity = localStorage.getItem('bucketSensitivity'); if (savedSensitivity) BUCKET_SENSITIVITY = parseInt(savedSensitivity);  if(sensitivitySlider) sensitivitySlider.value = BUCKET_SENSITIVITY;  if(sensitivityValueDisplay) sensitivityValueDisplay.textContent = BUCKET_SENSITIVITY; const savedKeyLeft = localStorage.getItem('keybindLeft'); if (savedKeyLeft) keybindLeft = savedKeyLeft;  if(keybindLeftBtn) keybindLeftBtn.textContent = keybindLeft.toUpperCase(); const savedKeyRight = localStorage.getItem('keybindRight'); if (savedKeyRight) keybindRight = savedKeyRight;  if(keybindRightBtn) keybindRightBtn.textContent = keybindRight.toUpperCase(); const savedKeyMaxSpeed = localStorage.getItem('keybindMaxSpeed'); if (savedKeyMaxSpeed) keybindMaxSpeed = savedKeyMaxSpeed; if(keybindMaxSpeedBtn) keybindMaxSpeedBtn.textContent = keybindMaxSpeed.toUpperCase();}
+function saveSettings() { localStorage.setItem('bucketSensitivity', BUCKET_SENSITIVITY); localStorage.setItem('keybindLeft', keybindLeft); localStorage.setItem('keybindRight', keybindRight); localStorage.setItem('keybindMaxSpeed', keybindMaxSpeed);}
+function startListeningForKeybind(type) { playSound('click'); listeningForKeybind = type; let btnToUpdate; if (type === 'left') btnToUpdate = keybindLeftBtn; else if (type === 'right') btnToUpdate = keybindRightBtn; else if (type === 'maxSpeed') btnToUpdate = keybindMaxSpeedBtn; if(btnToUpdate) btnToUpdate.textContent = 'Press key...'; [keybindLeftBtn, keybindRightBtn, keybindMaxSpeedBtn].forEach(btn => { if (btn !== btnToUpdate && btn) btn.disabled = true; });}
+function setKeybind(key) { if (!listeningForKeybind || key === 'Escape') {/*cancelled*/} else { if (listeningForKeybind === 'left') keybindLeft = key.toLowerCase(); else if (listeningForKeybind === 'right') keybindRight = key.toLowerCase(); else if (listeningForKeybind === 'maxSpeed') keybindMaxSpeed = key.toLowerCase(); saveSettings(); playSound('click');} if(keybindLeftBtn) keybindLeftBtn.textContent = keybindLeft.toUpperCase(); if(keybindRightBtn) keybindRightBtn.textContent = keybindRight.toUpperCase(); if(keybindMaxSpeedBtn) keybindMaxSpeedBtn.textContent = keybindMaxSpeed.toUpperCase(); listeningForKeybind = null; [keybindLeftBtn, keybindRightBtn, keybindMaxSpeedBtn].forEach(btn => {if(btn) btn.disabled = false;});}
+function getHighScores() { const scoresJSON = localStorage.getItem('highScores'); return scoresJSON ? JSON.parse(scoresJSON) : []; }
+function saveHighScore(newScore, timeStr) { let scores = getHighScores(); let isNewHigh = scores.length === 0 || newScore > (scores[0]?.score || 0); scores.push({ score: newScore, time: timeStr, date: new Date().toLocaleDateString() }); scores.sort((a, b) => b.score - a.score); scores = scores.slice(0, 10);  localStorage.setItem('highScores', JSON.stringify(scores)); return isNewHigh;}
+function loadHighScores() { const scores = getHighScores(); if(highScoresListElem) highScoresListElem.innerHTML = '';  if (scores.length === 0) { if(highScoresListElem) highScoresListElem.innerHTML = '<li>No high scores yet!</li>';}  else { scores.forEach(entry => { const li = document.createElement('li'); li.textContent = `${entry.score} points (${entry.time}) - ${entry.date}`; if(highScoresListElem) highScoresListElem.appendChild(li); });}}
+
+// --- Color Wheel Particle System ---
+// (Copied from your code (5).html)
+function addColorWheelParticle(x,y) { if (Math.random() < 0.5) return;  colorWheelParticles.push({ x: x + (Math.random() - 0.5) * PLAYER_CURSOR_OUTER_RADIUS * 0.5, y: y + (Math.random() - 0.5) * PLAYER_CURSOR_OUTER_RADIUS * 0.5, radius: Math.random() * 2 + 1, alpha: 1, color: `rgba(220, 220, 255, ${0.3 + Math.random() * 0.3})`, vx: (Math.random() - 0.5) * 0.5, vy: (Math.random() - 0.5) * 0.5 });}
+function updateColorWheelParticles(deltaTimeS) { for (let i = colorWheelParticles.length - 1; i >= 0; i--) { const p = colorWheelParticles[i]; p.x += p.vx; p.y += p.vy; p.alpha -= deltaTimeS * 2;  if (p.alpha <= 0) { colorWheelParticles.splice(i, 1); }}}
+function drawColorWheelParticles(ctx) { colorWheelParticles.forEach(p => { ctx.beginPath(); ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2); ctx.fillStyle = p.color.replace(/[^,]+(?=\))/, p.alpha.toFixed(2));  ctx.fill(); });}
+
+// --- Powerup Logic ---
+// (Copied from your code (5).html)
+function activatePowerup(type) { const now = performance.now(); playSound('powerupCollect'); let powerupText = ""; switch(type) { case 'slowFall': activePowerups.slowFall.active = true; activePowerups.slowFall.endTime = now + POWERUP_DURATION_MS; activePowerups.slowFall.originalValue = 1.0; powerupText = "Gravity Slowed"; break; case 'wideBucket': activePowerups.wideBucket.active = true; activePowerups.wideBucket.endTime = now + POWERUP_DURATION_MS; currentBucketBaseWidthRatio = BUCKET_BASE_WIDTH_RATIO_WIDE; if(bucket) bucket.baseWidth = gameWidth * currentBucketBaseWidthRatio; powerupText = "Enlarged Bucket"; break; case 'oneColor': activePowerups.oneColor.active = true; activePowerups.oneColor.endTime = now + POWERUP_DURATION_MS; const randColorIdx = Math.floor(Math.random() * BALL_COLOR_NAMES.length); activePowerups.oneColor.color = BALL_COLOR_NAMES[randColorIdx]; powerupText = "One Color"; break; case 'doublePoints': activePowerups.doublePoints.active = true; activePowerups.doublePoints.endTime = now + POWERUP_DURATION_MS; powerupText = "Double Points"; break; case 'extraLives': lives += 3; powerupText = "+3 Lives!"; break;} if (powerupText) { displayPowerupText(powerupText); } checkPowerups(); }
+function getRandomPowerupType() { const types = ['slowFall', 'wideBucket', 'oneColor', 'doublePoints', 'extraLives']; return types[Math.floor(Math.random() * types.length)];}
+function checkPowerups() { const now = performance.now(); let changed = false; for (const type in activePowerups) { const pu = activePowerups[type]; if (pu.active && pu.endTime && now >= pu.endTime) { pu.active = false; changed = true; if (type === 'wideBucket') { currentBucketBaseWidthRatio = BUCKET_BASE_WIDTH_RATIO_NORMAL; if (bucket) bucket.baseWidth = gameWidth * currentBucketBaseWidthRatio; } if (type === 'slowFall') pu.originalValue = 1.0; if (type === 'oneColor') pu.color = null;}} updatePowerupIcons(); return changed;}
+function updatePowerupIcons() { const now = performance.now(); for (const type in powerupIconElems) { const iconElem = powerupIconElems[type]; if (!iconElem) continue;  const pu = activePowerups[type]; if (pu && pu.active) { iconElem.classList.add('active'); if (pu.endTime && (pu.endTime - now) <= POWERUP_FLASH_THRESHOLD_MS) { iconElem.classList.add('flashing'); }  else { iconElem.classList.remove('flashing'); }} else { iconElem.classList.remove('active', 'flashing'); }}}
+function displayPowerupText(text) { const textElem = document.createElement('div'); textElem.className = 'powerup-text-display'; textElem.textContent = text; if (screens.game) screens.game.appendChild(textElem);  setTimeout(() => { if (textElem.parentNode) { textElem.parentNode.removeChild(textElem); } }, 1000); }
+
+// --- Game Logic ---
+// (Copied from your code (5).html, with MODIFIED createDropper for synchronization)
+function startGame() {
+    if (!initAudio()) { console.warn("Audio could not be initialized in startGame.") }
+    if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+
+    for (const key in keysPressed) { delete keysPressed[key]; } // Clear pressed keys
+
+    score = 0; lives = 3; elapsedGameTimeMs = 0; 
+    gameRunning = true; gamePaused = false; balls.length = 0; colorWheelParticles.length = 0;
+    if(newHighScoreTextElem) newHighScoreTextElem.style.display = 'none'; 
+
+    for (const type in activePowerups) {
+        activePowerups[type].active = false;
+        activePowerups[type].endTime = 0;
+        if (type === 'oneColor') activePowerups.oneColor.color = null;
+        if (type === 'slowFall' && balls.length > 0) { 
+            balls.forEach(ball => { if (ball.originalVy) ball.vy = ball.originalVy; delete ball.originalVy; });
+        }
+    }
+    currentBucketBaseWidthRatio = BUCKET_BASE_WIDTH_RATIO_NORMAL;
+    updatePowerupIcons();
+    updateBucketSpeed(); 
+    
+    const createDropper = (startsMovingRight) => ({
+        x: gameWidth / 2 - DROPPER_WIDTH_BOTTOM / 2,
+        y: 0,
+        width: DROPPER_WIDTH_BOTTOM,
+        height: DROPPER_HEIGHT,
+        topWidth: DROPPER_WIDTH_BOTTOM * DROPPER_TOP_WIDTH_RATIO,
+        speed: (gameWidth - DROPPER_WIDTH_BOTTOM) / INITIAL_DROPPER_TIME_PER_SCREEN_S,
+        direction: startsMovingRight ? 1 : -1,
+        currentDropIntervalMs: INITIAL_BALL_DROP_INTERVAL_MS, 
+        timeSinceLastDrop: 0, // MODIFIED: Set to 0 for synchronization
+        isMaxSpeedOverride: false 
+    });
+
+    dropper1 = createDropper(true); 
+    dropper2 = createDropper(false); 
+
+    bucket = {
+        baseWidth: gameWidth * currentBucketBaseWidthRatio,
+        height: BUCKET_HEIGHT,
+        x: gameWidth / 2 - (gameWidth * currentBucketBaseWidthRatio) / 2, 
+        y: gameHeight - BUCKET_HEIGHT,
+        get sideRise() { return this.height; },
+        get sideRun() { return this.height / Math.tan(BUCKET_SIDE_ANGLE); },
+        get P1() { return { x: this.x - this.sideRun, y: this.y }; }, 
+        get P2() { return { x: this.x, y: this.y + this.height }; }, 
+        get P3() { return { x: this.x + this.baseWidth, y: this.y + this.height }; }, 
+        get P4() { return { x: this.x + this.baseWidth + this.sideRun, y: this.y }; }
+    };
+    playerCursor = { x: gameWidth / 2, y: gameHeight / 2, outerRadius: PLAYER_CURSOR_OUTER_RADIUS, ringThickness: PLAYER_CURSOR_RING_THICKNESS };
+
+    updateUI();
+    showScreen('game');
+    lastTime = performance.now();
+    timePausedStarted = 0; 
+    if (animationFrameId) cancelAnimationFrame(animationFrameId);
+    animationFrameId = requestAnimationFrame(gameLoop);
+}
+function endGame() { 
+    for (const key in keysPressed) { delete keysPressed[key]; } // Clear pressed keys
+    gameRunning = false; gamePaused = false;
+    if (animationFrameId) cancelAnimationFrame(animationFrameId);
+    if(finalScoreDisplay) finalScoreDisplay.textContent = score;
+    if(finalTimeDisplay) finalTimeDisplay.textContent = formatTime(elapsedGameTimeMs);
+    const isNewHigh = saveHighScore(score, formatTime(elapsedGameTimeMs));
+    if (isNewHigh && newHighScoreTextElem) { newHighScoreTextElem.style.display = 'block';
+    } else if (newHighScoreTextElem) { newHighScoreTextElem.style.display = 'none'; }
+    showScreen('gameOver'); playSound('loseLife'); 
+}
+function updateUI() {  if(scoreDisplay) scoreDisplay.textContent = score; if(timeDisplay) timeDisplay.textContent = formatTime(elapsedGameTimeMs); if(livesDisplay) livesDisplay.textContent = '❤'.repeat(Math.max(0,lives)) + '♡'.repeat(Math.max(0,3-lives));}
+function formatTime(ms) { let totalSeconds = Math.floor(ms / 1000); let minutes = Math.floor(totalSeconds / 60); let seconds = totalSeconds % 60; let tenths = Math.floor((ms % 1000) / 100); return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}.${tenths}`; }
+function updateGameParameters(deltaTimeS) { elapsedGameTimeMs += deltaTimeS * 1000; const progress = Math.min(1, elapsedGameTimeMs / MAX_SCALING_TIME_MS); const updateDropperParams = (drpr) => { if (!drpr) return; if (drpr.isMaxSpeedOverride) { drpr.speed = (gameWidth - drpr.width) / FINAL_DROPPER_TIME_PER_SCREEN_S; drpr.currentDropIntervalMs = FINAL_BALL_DROP_INTERVAL_MS;} else { const dropperTimePerScreenS = INITIAL_DROPPER_TIME_PER_SCREEN_S - (INITIAL_DROPPER_TIME_PER_SCREEN_S - FINAL_DROPPER_TIME_PER_SCREEN_S) * progress; drpr.speed = (gameWidth - drpr.width) / dropperTimePerScreenS; drpr.currentDropIntervalMs = INITIAL_BALL_DROP_INTERVAL_MS - (INITIAL_BALL_DROP_INTERVAL_MS - FINAL_BALL_DROP_INTERVAL_MS) * progress;}}; updateDropperParams(dropper1); updateDropperParams(dropper2); checkPowerups(); }
+function updateBucketSpeed() { const timeToTraverse = MAX_BUCKET_TRAVERSE_TIME_S - ((BUCKET_SENSITIVITY - 1) / 9) * (MAX_BUCKET_TRAVERSE_TIME_S - MIN_BUCKET_TRAVERSE_TIME_S); currentBucketSpeedPPS = gameWidth / timeToTraverse; }
+
+
+// --- Entity Update and Draw ---
+// (Copied from your code (5).html, with the ball wall bounce logic from my previous correct implementation re-added)
+function updateSingleDropper(drpr, deltaTimeS, isPrimaryDropper) {
+    if (!drpr) return;
+    drpr.x += drpr.speed * drpr.direction * deltaTimeS;
+    if (drpr.x + drpr.width > gameWidth) { drpr.x = gameWidth - drpr.width; drpr.direction *= -1; }
+    if (drpr.x < 0) { drpr.x = 0; drpr.direction *= -1; }
+
+    drpr.timeSinceLastDrop += deltaTimeS * 1000; 
+    if (drpr.timeSinceLastDrop >= drpr.currentDropIntervalMs) { 
+        drpr.timeSinceLastDrop = 0;
+        let ballTypeRand = Math.random(); let chosenColor = null; let chosenColorName = null; let isPowerup = false;
+        if (isPrimaryDropper) { 
+            if (ballTypeRand < 0.01) { isPowerup = true; chosenColor = POWERUP_BALL_COLOR; chosenColorName = 'powerup';} 
+            else { 
+                let colorRand = Math.random();
+                if (activePowerups.oneColor.active && activePowerups.oneColor.color) { chosenColorName = activePowerups.oneColor.color; chosenColor = BALL_COLORS[BALL_COLOR_NAMES.indexOf(chosenColorName)];} 
+                else {
+                    if (colorRand < 0.33) { chosenColor = BALL_COLORS[0]; chosenColorName = BALL_COLOR_NAMES[0];}
+                    else if (colorRand < 0.66) { chosenColor = BALL_COLORS[1]; chosenColorName = BALL_COLOR_NAMES[1];}
+                    else { chosenColor = BALL_COLORS[2]; chosenColorName = BALL_COLOR_NAMES[2];}
+                }
+            }
+        } else { 
+            if (ballTypeRand < 0.01) { isPowerup = true; chosenColor = POWERUP_BALL_COLOR; chosenColorName = 'powerup';} 
+            else { chosenColor = WHITE_BALL_COLOR; chosenColorName = 'white';}
+        }
+        const fallTimeS = MIN_BALL_FALL_TIME_S + Math.random() * (MAX_BALL_FALL_TIME_S - MIN_BALL_FALL_TIME_S);
+        let fallSpeedPPS = gameHeight / fallTimeS;
+        let originalVyForBall = fallSpeedPPS; 
+        if (activePowerups.slowFall.active) { fallSpeedPPS *= 0.65; } 
+        const sizeMultiplier = 0.6 + Math.random() * (1.4 - 0.6); 
+        const currentBallRadius = BALL_RADIUS_BASE * sizeMultiplier;
+        balls.push({ x: drpr.x + drpr.width / 2, y: drpr.y + drpr.height, radius: currentBallRadius, 
+                     color: chosenColor, colorName: chosenColorName, 
+                     vy: fallSpeedPPS, originalVy: originalVyForBall, 
+                     isPowerup: isPowerup, swayOffset: 0, swayTime: Math.random() * Math.PI * 2,
+                     vx_sway_direction: (Math.random() < 0.5 ? -1 : 1) 
+                    });
+        playSound('drop');
+    }
+}
+function drawSingleDropper(ctx, drpr) { if(drpr){ctx.fillStyle = DROPPER_COLOR; ctx.beginPath(); const topOffset = (drpr.width - drpr.topWidth) / 2; ctx.moveTo(drpr.x + topOffset, drpr.y); ctx.lineTo(drpr.x + drpr.width - topOffset, drpr.y); ctx.lineTo(drpr.x + drpr.width, drpr.y + drpr.height); ctx.lineTo(drpr.x, drpr.y + drpr.height); ctx.closePath(); ctx.fill();} else console.warn("drawSingleDropper: drpr undefined");}
+function lineCircleCollision(p1, p2, circleCenter, radius) { let dp = { x: p2.x - p1.x, y: p2.y - p1.y }; let p1ToCircle = { x: circleCenter.x - p1.x, y: circleCenter.y - p1.y }; let t = (p1ToCircle.x * dp.x + p1ToCircle.y * dp.y) / (dp.x * dp.x + dp.y * dp.y); t = Math.max(0, Math.min(1, t)); let closestPoint = { x: p1.x + dp.x * t, y: p1.y + dp.y * t }; let distSq = (circleCenter.x - closestPoint.x)**2 + (circleCenter.y - closestPoint.y)**2; return distSq <= radius**2;}
+function updateBalls(deltaTimeS) {
+    for (let i = balls.length - 1; i >= 0; i--) {
+        const ball = balls[i];
+        ball.y += ball.vy * deltaTimeS;
+        ball.swayTime += BALL_SWAY_SPEED * deltaTimeS * ball.vx_sway_direction; 
+        ball.swayOffset = Math.sin(ball.swayTime) * gameWidth * BALL_SWAY_AMPLITUDE_RATIO;
+        let displayX = ball.x + ball.swayOffset;
+        if (displayX - ball.radius < 0) { displayX = ball.radius; ball.x = displayX - ball.swayOffset; ball.vx_sway_direction *= -1; if (gameWidth * BALL_SWAY_AMPLITUDE_RATIO !== 0) ball.swayTime = Math.asin( Math.max(-1, Math.min(1, (displayX - ball.x) / (gameWidth * BALL_SWAY_AMPLITUDE_RATIO))) );
+        } else if (displayX + ball.radius > gameWidth) { displayX = gameWidth - ball.radius; ball.x = displayX - ball.swayOffset; ball.vx_sway_direction *= -1; if (gameWidth * BALL_SWAY_AMPLITUDE_RATIO !== 0) ball.swayTime = Math.asin( Math.max(-1, Math.min(1, (displayX - ball.x) / (gameWidth * BALL_SWAY_AMPLITUDE_RATIO))) );}
+        const dxCursor = displayX - playerCursor.x; const dyCursor = ball.y - playerCursor.y; const distCursor = Math.sqrt(dxCursor * dxCursor + dyCursor * dyCursor); let pointsMultiplier = activePowerups.doublePoints.active ? 2 : 1;
+        if (distCursor < ball.radius + playerCursor.outerRadius) {
+            if (ball.isPowerup) { activatePowerup(getRandomPowerupType()); balls.splice(i, 1); continue; }
+            if (ball.colorName === 'white') { score += 1 * pointsMultiplier; playSound('collectGood'); balls.splice(i, 1); continue; }
+            const angle = (Math.atan2(dyCursor, dxCursor) + 2 * Math.PI) % (2 * Math.PI); let segmentHit = null; let greenStart = PLAYER_CURSOR_SEGMENT_ANGLES.green.start;
+            if ((angle >= greenStart && angle < PLAYER_CURSOR_SEGMENT_ANGLES.green.end) || (greenStart < 0 && angle >= (greenStart + 2*Math.PI))) { segmentHit = 'green';
+            } else if (angle >= PLAYER_CURSOR_SEGMENT_ANGLES.red.start && angle < PLAYER_CURSOR_SEGMENT_ANGLES.red.end) { segmentHit = 'red';
+            } else if (angle >= PLAYER_CURSOR_SEGMENT_ANGLES.blue.start && angle < PLAYER_CURSOR_SEGMENT_ANGLES.blue.end) { segmentHit = 'blue'; }
+            if (segmentHit) { if (segmentHit === ball.colorName) { score += 3 * pointsMultiplier; playSound('collectGood'); } else { lives--; playSound('loseLife'); } balls.splice(i, 1); continue;}
+        }
+        if (bucket && (lineCircleCollision(bucket.P1, bucket.P2, {x: displayX, y: ball.y}, ball.radius) || lineCircleCollision(bucket.P2, bucket.P3, {x: displayX, y: ball.y}, ball.radius) || lineCircleCollision(bucket.P3, bucket.P4, {x: displayX, y: ball.y}, ball.radius)) ) {
+            if (ball.y + ball.radius >= bucket.y) { if (ball.isPowerup) { activatePowerup(getRandomPowerupType()); } else { score += 1 * pointsMultiplier; playSound('collectBucket'); } balls.splice(i, 1); continue;}}
+        if (ball.y - ball.radius > gameHeight) { if (!ball.isPowerup && ball.colorName !== 'white') { lives--; playSound('loseLife'); } balls.splice(i, 1);}
+    }
+}
+function drawBalls(ctx) { balls.forEach(ball => { const displayX = ball.x + ball.swayOffset; let gradient; if (ball.colorName === 'powerup') { gradient = ctx.createRadialGradient(displayX, ball.y, ball.radius * 0.1, displayX, ball.y, ball.radius); gradient.addColorStop(0, '#FFFF8D'); gradient.addColorStop(1, POWERUP_BALL_COLOR); } else if (ball.colorName === 'white') { gradient = ctx.createRadialGradient(displayX, ball.y, ball.radius * 0.1, displayX, ball.y, ball.radius); gradient.addColorStop(0, '#FFFFFF'); gradient.addColorStop(1, '#E0E0E0');  } else { gradient = ctx.createRadialGradient(displayX, ball.y, ball.radius * 0.1, displayX, ball.y, ball.radius); const baseColor = ball.color;  let r = parseInt(baseColor.slice(1,3), 16); let g = parseInt(baseColor.slice(3,5), 16); let b = parseInt(baseColor.slice(5,7), 16); let lighterShade = `rgb(${Math.min(255, r+40)}, ${Math.min(255, g+40)}, ${Math.min(255, b+40)})`; gradient.addColorStop(0, lighterShade); gradient.addColorStop(1, baseColor); } ctx.fillStyle = gradient; ctx.beginPath(); ctx.arc(displayX, ball.y, ball.radius, 0, 2 * Math.PI); ctx.fill(); });}
+function updateBucket(deltaTimeS) { if(!bucket) return; if (keysPressed[keybindLeft]) { bucket.x -= currentBucketSpeedPPS * deltaTimeS; } if (keysPressed[keybindRight]) { bucket.x += currentBucketSpeedPPS * deltaTimeS; } if (bucket.x + bucket.baseWidth + bucket.sideRun < 0) { bucket.x = gameWidth + bucket.sideRun; }  else if (bucket.x - bucket.sideRun > gameWidth) { bucket.x = -bucket.baseWidth - bucket.sideRun; }}
+function drawBucket(ctx) { if(!bucket) return; ctx.strokeStyle = BUCKET_COLOR; ctx.lineWidth = 3;  ctx.beginPath(); ctx.moveTo(bucket.P1.x, bucket.P1.y); ctx.lineTo(bucket.P2.x, bucket.P2.y); ctx.lineTo(bucket.P3.x, bucket.P3.y); ctx.lineTo(bucket.P4.x, bucket.P4.y); ctx.stroke();}
+function drawPlayerCursor(ctx) { if (!playerCursor) return; const ringInnerRadius = playerCursor.outerRadius - playerCursor.ringThickness; ctx.fillStyle = 'white'; ctx.beginPath(); ctx.arc(playerCursor.x, playerCursor.y, ringInnerRadius, 0, 2 * Math.PI); ctx.fill(); const drawSegment = (color, startAngle, endAngle) => { ctx.fillStyle = color; ctx.beginPath(); ctx.moveTo(playerCursor.x, playerCursor.y);  ctx.arc(playerCursor.x, playerCursor.y, playerCursor.outerRadius, startAngle, endAngle, false); ctx.lineTo(playerCursor.x, playerCursor.y);  ctx.closePath(); ctx.fill(); }; drawSegment(PLAYER_CURSOR_OUTLINE_COLORS[1], PLAYER_CURSOR_SEGMENT_ANGLES.green.start, PLAYER_CURSOR_SEGMENT_ANGLES.green.end); drawSegment(PLAYER_CURSOR_OUTLINE_COLORS[0], PLAYER_CURSOR_SEGMENT_ANGLES.red.start, PLAYER_CURSOR_SEGMENT_ANGLES.red.end); drawSegment(PLAYER_CURSOR_OUTLINE_COLORS[2], PLAYER_CURSOR_SEGMENT_ANGLES.blue.start, PLAYER_CURSOR_SEGMENT_ANGLES.blue.end);}
+
+// --- Main Game Loop ---
+// (Copied from your code (5).html)
+function gameLoop(timestamp) { if (!gameRunning) return; if (gamePaused) { animationFrameId = requestAnimationFrame(gameLoop); return; } const deltaTimeS = (timestamp - lastTime) / 1000; lastTime = timestamp; const maxSpeedActive = keysPressed[keybindMaxSpeed.toLowerCase()]; if (dropper1) dropper1.isMaxSpeedOverride = maxSpeedActive; if (dropper2) dropper2.isMaxSpeedOverride = maxSpeedActive; updateGameParameters(deltaTimeS); updateSingleDropper(dropper1, deltaTimeS, true);  updateSingleDropper(dropper2, deltaTimeS, false);  updateBucket(deltaTimeS);  updateBalls(deltaTimeS);  updateColorWheelParticles(deltaTimeS); ctx.clearRect(0, 0, gameWidth, gameHeight); drawSingleDropper(ctx, dropper1); drawSingleDropper(ctx, dropper2); drawBucket(ctx); drawBalls(ctx); drawColorWheelParticles(ctx); drawPlayerCursor(ctx); updateUI(); if (lives <= 0) { endGame(); return;  } animationFrameId = requestAnimationFrame(gameLoop);}
+
+</script>
+</body>
+</html>
