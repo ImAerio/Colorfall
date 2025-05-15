@@ -3,11 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Color Fall</title> 
+    <link rel="preload" href="https://fonts.gstatic.com/s/inter/v13/UcC73FwrK3iLTeHuS_fvQtMwCp50KnMa2JL7SUc.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="icon" href="favicon.png" type="image/png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
+    
+    <title>Colorfall</title>
     <style>
         body {
-            font-family: 'Arial', sans-serif;
-            background-color: #1a1a1a; 
+            font-family: 'Inter', sans-serif;
+            background-color: #1a1a1a;
             color: #e0e0e0;
             margin: 0;
             display: flex;
@@ -21,27 +27,43 @@
             display: none;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
-            padding: 20px;
+            padding: 20px; 
             box-sizing: border-box;
             width: 100%;
             max-width: 800px;
             text-align: center;
         }
+        #homeScreen {
+            justify-content: center;
+        }
+
 
         .screen.active {
-            display: flex !important; 
+            display: flex !important;
         }
 
         #gameScreen {
             position: relative;
+            justify-content: center; 
         }
 
-        canvas {
+        canvas#gameCanvas {
             border: 1px solid #444;
-            background: linear-gradient(to bottom, #22222a, #111115); 
-            cursor: none;
+            background: linear-gradient(80deg, #0f0e14, #211f29 23%, #211f29 30%, #1c1a24 50%, #211f29 70%, #211f29 77%, #0f0e14);
+            cursor: none; 
+            position: relative;
+            z-index: 2;
         }
+
+        #atmosphericCanvas { 
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+            z-index: 1; 
+        }
+
 
         #uiOverlay {
             position: absolute;
@@ -50,34 +72,52 @@
             right: 10px;
             display: flex;
             justify-content: space-between;
-            align-items: center; 
+            align-items: center;
             font-size: 1.2em;
             color: #fff;
             pointer-events: none;
             background-color: rgba(0,0,0,0.3);
-            padding: 8px 15px; 
+            padding: 8px 15px;
             border-radius: 5px;
+            z-index: 5;
         }
         #uiOverlay .game-stats {
             display: flex;
-            align-items: center; 
+            align-items: center;
         }
         #uiOverlay .game-stats > div {
-            margin-right: 25px; 
+            margin-right: 25px;
         }
         #uiOverlay .game-stats > div:last-child {
             margin-right: 0;
         }
-        #quitGameBtn {
-            pointer-events: auto;
-            padding: 6px 12px; 
-            font-size: 0.9em; 
-            background-color: #dc3545;
-            align-self: center; 
+
+        #gameScreenHomeBtnInOverlay {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            padding: 8px;
+            width: 42px;
+            height: 42px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: background-color 0.2s;
+            margin: 0;
+            pointer-events: auto; 
+            align-self: center;
         }
-        #quitGameBtn:hover {
-            background-color: #c82333;
+        #gameScreenHomeBtnInOverlay:hover {
+            background-color: #0056b3;
         }
+        #gameScreenHomeBtnInOverlay .home-svg-icon {
+            width: 24px;
+            height: 21px;
+            fill: white;
+        }
+
 
         #powerupIconsContainer {
             position: absolute;
@@ -87,6 +127,7 @@
             flex-direction: column;
             gap: 10px;
             pointer-events: none;
+            z-index: 5;
         }
         .powerup-icon {
             width: 40px;
@@ -98,27 +139,92 @@
             align-items: center;
             font-size: 1.2em;
             font-weight: bold;
-            color: #777; 
+            color: #777;
             border-radius: 5px;
             transition: color 0.2s, border-color 0.2s, box-shadow 0.2s;
+            position: relative;  /* For positioning internal shapes */
+            overflow: hidden;    /* To clip internal shapes */
         }
+
         .powerup-icon.active {
-            color: #fff; 
-            border-color: #00ff00;
-            box-shadow: 0 0 8px #00ff00;
-        }
-        .powerup-icon.flashing {
-            animation: flashPowerup 0.5s infinite alternate;
-        }
-        @keyframes flashPowerup {
-            from { color: #fff; border-color: #00ff00; box-shadow: 0 0 8px #00ff00; opacity: 1; }
-            to   { color: #777; border-color: #555; box-shadow: none; opacity: 0.6; }
+            color: #fff; /* For text based icons */
+            border-color: #FFDC00;
+            box-shadow: 0 0 8px #FFDC00;
         }
         
-        #slowFallIcon.active { color: #61dafb; border-color: #61dafb; box-shadow: 0 0 8px #61dafb;}
-        #wideBucketIcon.active { color: #FFDC00; border-color: #FFDC00; box-shadow: 0 0 8px #FFDC00;}
-        #oneColorIcon.active { color: #F012BE; border-color: #F012BE; box-shadow: 0 0 8px #F012BE;}
-        #doublePointsIcon.active { color: #FF851B; border-color: #FF851B; box-shadow: 0 0 8px #FF851B;}
+        #oneColorIcon.active { 
+            color: #fff;
+        }
+
+        .powerup-icon.flashing {
+            animation: flashPowerup 0.3s ease-in-out infinite alternate;
+        }
+
+        @keyframes flashPowerup {
+            from {
+                border-color: #FFDC00;
+                box-shadow: 0 0 10px #FFDC00;
+                opacity: 1;
+            }
+            to   {
+                border-color: #777;
+                box-shadow: 0 0 3px #777;
+                opacity: 0.7;
+            }
+        }
+        
+        /* --- Magnet Icon --- */
+        #magnetIcon .magnet-body {
+            width: 60%; 
+            height: 40%;
+            border: 5px solid #777777; /* Inactive color */
+            border-bottom: none; 
+            border-radius: 15px 15px 0 0; 
+            position: absolute;
+            top: 20%; 
+            left: 50%;
+            transform: translateX(-50%);
+            box-sizing: border-box;
+        }
+
+        #magnetIcon .magnet-pole {
+            width: 13%; 
+            height: 10%; 
+            background-color: #777777; /* Inactive color */
+            position: absolute;
+            bottom: 20%; 
+            box-sizing: border-box;
+        }
+
+        #magnetIcon .magnet-pole-left {
+            left: 20%; 
+        }
+
+        #magnetIcon .magnet-pole-right {
+            right: 20%; 
+        }
+
+        /* Active state for Magnet parts */
+        #magnetIcon.active .magnet-body {
+            border-color: white;
+        }
+        #magnetIcon.active .magnet-pole {
+            background-color: white;
+        }
+
+        /* --- Invincibility Shield Icon --- */
+        #invincibilityIcon .shield-shape {
+            width: 60%; 
+            height: 70%;
+            background-color: #777777; /* Inactive color */
+            position: relative; 
+            clip-path: polygon(50% 0%, 100% 15%, 100% 60%, 50% 100%, 0% 60%, 0% 15%);
+        }
+        
+        /* Active state for Shield shape */
+        #invincibilityIcon.active .shield-shape {
+            background-color: white;
+        }
 
 
         #gameOverScreen {
@@ -127,24 +233,51 @@
             left: 50%;
             transform: translate(-50%, -50%);
             background-color: rgba(0, 0, 0, 0.85);
-            padding: 30px;
+            padding: 25px 30px; 
             border-radius: 10px;
             border: 1px solid #555;
             z-index: 100;
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            min-width: 350px; 
         }
         #newHighScoreText {
-            color: #FFDC00; 
+            color: #FFDC00;
             font-size: 1.3em;
-            margin-bottom: 15px;
+            margin-bottom: 10px; 
         }
-        #gameOverScreen h2 {
+        #gameOverScreen h2 { 
+            margin-top: 0;
+            margin-bottom: 20px; 
+            color: #61dafb;
+            font-weight: 700;
+        }
+        #gameOverScoreTime {
+            display: flex;
+            justify-content: space-around; 
+            width: 100%;
             margin-bottom: 25px; 
+            font-size: 1.1em;
         }
-        #gameOverScreen p {
-            margin-bottom: 15px; 
+        #gameOverButtons {
+            display: flex;
+            justify-content: center; 
+            width: 100%;
+        }
+        #gameOverButtons button {
+            margin: 0 10px; 
+        }
+        #gameOverQuitBtn { 
+            background-color: #dc3545;
+        }
+        #gameOverQuitBtn:hover {
+            background-color: #c82333;
         }
 
+
         button {
+            font-family: inherit;
             background-color: #007bff;
             color: white;
             border: none;
@@ -165,49 +298,138 @@
          .keybindBtn:disabled { background-color: #555; cursor: not-allowed;}
 
 
-        h1, h2 {
+        h1 { 
             color: #61dafb;
+            font-weight: 700;
+            margin-bottom: 25px;
         }
 
-        #settingsScreen div, #highScoresScreen li, #howToPlayScreenContent p, #howToPlayScreenContent ul {
+
+        #settingsScreen, #highScoresScreen, #howToPlayScreen {
+            justify-content: flex-start; 
+            align-items: stretch;    
+            max-height: 85vh; 
+        }
+
+        #howToPlayScreen {
+            padding-bottom: 0;
+        }
+
+
+        .screen-header {
+            display: flex;
+            align-items: center;
+            width: 100%;
+            margin-bottom: 25px; 
+            position: relative; 
+        }
+        .screen-header h2 {
+            width: 100%; 
+            text-align: center;
+            color: #61dafb;
+            font-weight: 700;
+            margin: 0; 
+        }
+
+        .home-icon-btn {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            padding: 8px;
+            width: 42px; 
+            height: 42px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: background-color 0.2s;
+            margin: 0; 
+            position: absolute; 
+            top: 50%;
+            right: 0; 
+            transform: translateY(-50%);
+        }
+        .home-icon-btn:hover {
+            background-color: #0056b3;
+        }
+
+        .home-svg-icon {
+            width: 24px; 
+            height: 21px; 
+            fill: white;
+        }
+
+        .settings-content-wrapper {
+            flex-grow: 1;
+            overflow-y: auto;
+            min-height: 0; 
+            width: 100%;
+            text-align: center;
+            padding-bottom: 10px; 
+        }
+        .settings-content-wrapper > div {
+            margin-bottom: 20px;
+            font-size: 1.1em;
+        }
+        .settings-content-wrapper label {
+            margin-right: 10px;
+            display: inline-block; 
+            width: 180px; 
+            text-align: right;
+        }
+        .settings-content-wrapper input[type="range"] {
+            vertical-align: middle;
+            width: 200px; 
+            cursor: pointer; 
+        }
+        .settings-content-wrapper .slider-value-display {
+             min-width: 30px; 
+             display: inline-block;
+             text-align: left;
+        }
+
+
+        #howToPlayScreenContent {
+            flex-grow: 1; 
+            overflow-y: auto; 
+            min-height: 0; 
+            width: 100%;   
+            padding-right: 15px; 
+            text-align: left;
+            padding-bottom: 20px; 
+        }
+         #howToPlayScreenContent p, #howToPlayScreenContent ul {
             margin-bottom: 15px;
             font-size: 1.1em;
         }
-        #howToPlayScreen {
-            max-height: 80vh; 
-            overflow-y: hidden; 
-        }
-        #howToPlayScreenContent {
-            max-height: calc(80vh - 120px); 
-            overflow-y: auto; 
-            padding-right: 15px; 
-            text-align: left; 
-        }
         #howToPlayScreenContent ul {
             list-style-position: inside;
-            max-width: 500px; 
+            max-width: 500px;
             margin-left: auto;
             margin-right: auto;
         }
-        #settingsScreen label {
-            margin-right: 10px;
-        }
-        #sensitivitySlider {
-            vertical-align: middle;
-        }
+
         #highScoresList {
+            flex-grow: 1; 
+            overflow-y: auto;
+            min-height: 0; 
+            width: 100%;   
             list-style-type: decimal;
             padding-left: 40px;
             text-align: left;
             max-width: 300px;
-            margin: 0 auto;
+            margin: 0 auto; 
+            padding-bottom: 10px; 
         }
         #highScoresList li {
             background-color: #333;
             padding: 5px 10px;
             border-radius: 3px;
             margin-bottom: 5px;
+            font-size: 1.1em;
         }
+
 
         #pauseOverlay {
             position: absolute;
@@ -218,22 +440,27 @@
             background-color: rgba(0,0,0,0.7);
             color: white;
             display: flex;
+            flex-direction: column;
             justify-content: center;
             align-items: center;
             font-size: 2em;
             z-index: 99;
             text-align: center;
         }
+        #pauseOverlay small {
+            font-size: 0.6em;
+            margin-top: 10px;
+        }
 
-        
+
         .powerup-text-display {
             position: absolute;
             left: 50%;
-            top: 40%; 
+            top: 40%;
             transform: translateX(-50%);
-            font-size: 2.5em; 
+            font-size: 2.5em;
             font-weight: bold;
-            color: #FFDC00; 
+            color: #FFDC00;
             text-shadow: 0 0 5px black;
             pointer-events: none;
             z-index: 101;
@@ -243,22 +470,65 @@
 
         @keyframes powerupTextAnim {
             0% { transform: translateX(-50%) scale(1); opacity: 1; }
-            50% { transform: translateX(-50%) scale(1.1); opacity: 1; } 
+            50% { transform: translateX(-50%) scale(1.1); opacity: 1; }
             100% { transform: translateX(-50%) scale(1.3); opacity: 0; }
         }
+
+        #quitConfirmationDialog {
+            position: fixed; 
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(20, 20, 25, 0.92); 
+            padding: 25px 30px; 
+            border-radius: 10px;
+            border: 1px solid #555;
+            z-index: 200; 
+            text-align: center;
+            color: #e0e0e0;
+            box-shadow: 0 0 15px rgba(0,0,0,0.5);
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+        }
+        #quitConfirmationDialog p {
+            font-size: 1.25em;
+            margin-top: 0;
+            margin-bottom: 25px; 
+        }
+        #quitConfirmationButtons {
+            display: flex;
+            justify-content: center; 
+        }
+        #quitConfirmationButtons button {
+            margin: 0 10px; 
+        }
+        #confirmQuitBtn { 
+            background-color: #dc3545;
+        }
+        #confirmQuitBtn:hover {
+            background-color: #c82333;
+        }
+        #cancelQuitBtn { 
+            background-color: #007bff;
+        }
+        #cancelQuitBtn:hover {
+            background-color: #0056b3;
+        }
+
     </style>
 </head>
 <body>
-
     <div id="homeScreen" class="screen active">
-        <h1>Color Fall</h1> 
-        <button id="startGameBtn">Start New Game</button>
+        <h1>Colorfall</h1>
+        <button id="startGameBtn">Play</button>
         <button id="howToPlayBtn">How to Play</button>
         <button id="settingsBtn">Settings</button>
         <button id="highScoresBtn">High Scores</button>
     </div>
 
     <div id="gameScreen" class="screen">
+        <canvas id="atmosphericCanvas"></canvas>
         <canvas id="gameCanvas"></canvas>
         <div id="uiOverlay">
             <div class="game-stats">
@@ -266,418 +536,1259 @@
                 <div>Time: <span id="timeDisplay">00:00.0</span></div>
                 <div>Lives: <span id="livesDisplay">❤❤❤</span></div>
             </div>
-            <button id="quitGameBtn">Quit Run</button>
+            <button id="gameScreenHomeBtnInOverlay" title="Back to Home">
+                <svg viewBox="0 0 28 25" class="home-svg-icon" xmlns="http://www.w3.org/2000/svg">
+                    <polygon points="7,23 7,13.5 21,13.5 21,23" />
+                    <polygon points="14,3 3,14 25,14" />
+                </svg>
+            </button>
         </div>
         <div id="powerupIconsContainer">
-            <div class="powerup-icon" id="slowFallIcon" title="Slow Fall">⬆</div>
+            <div class="powerup-icon" id="slowFallIcon" title="Slow Fall (Vertical & Horizontal)">⬆</div>
             <div class="powerup-icon" id="wideBucketIcon" title="Wide Bucket">⎵</div>
-            <div class="powerup-icon" id="oneColorIcon" title="One Color">🔵</div>
+            <div class="powerup-icon" id="oneColorIcon" title="One Color">⬤</div>
             <div class="powerup-icon" id="doublePointsIcon" title="Double Points">x2</div>
+            <div class="powerup-icon" id="magnetIcon" title="White Ball Magnet">
+                <div class="magnet-body"></div>
+                <div class="magnet-pole magnet-pole-left"></div>
+                <div class="magnet-pole magnet-pole-right"></div>
+            </div>
+            <div class="powerup-icon" id="invincibilityIcon" title="Invincibility">
+                <div class="shield-shape"></div>
+            </div>
         </div>
         <div id="gameOverScreen" style="display:none;">
-            <div id="newHighScoreText" style="display:none;">New High Score!</div>
             <h2>Game Over!</h2>
-            <p>Final Score: <span id="finalScoreDisplay">0</span></p>
-            <p>Total Time: <span id="finalTimeDisplay">00:00.0</span></p>
-            <button id="playAgainBtn">Play Again</button>
-            <button id="gameOverToHomeBtn">Back to Home</button>
+            <div id="newHighScoreText" style="display:none;">New High Score!</div>
+            <div id="gameOverScoreTime">
+                <span>Score: <span id="finalScoreDisplay">0</span></span>
+                <span>Time: <span id="finalTimeDisplay">00:00.0</span></span>
+            </div>
+            <div id="gameOverButtons">
+                <button id="playAgainBtn">Play Again</button>
+                <button id="gameOverQuitBtn">Quit</button>
+            </div>
         </div>
         <div id="pauseOverlay" style="display:none;">
-            Game Paused<br><small>(Click to resume)</small> 
+            Game Paused
+            <small>(Press 'P' or Click to Resume)</small>
         </div>
     </div>
 
     <div id="settingsScreen" class="screen">
-        <h2>Settings</h2>
-        <div>
-            <label for="sensitivitySlider">Bucket Sensitivity:</label>
-            <input type="range" id="sensitivitySlider" min="1" max="10" value="5">
-            <span id="sensitivityValueDisplay">5</span>
+        <div class="screen-header">
+            <h2>Settings</h2>
+            <button id="settingsToHomeBtnIcon" class="home-icon-btn" title="Back to Home">
+                <svg viewBox="0 0 28 25" class="home-svg-icon" xmlns="http://www.w3.org/2000/svg">
+                    <polygon points="7,23 7,13.5 21,13.5 21,23" /> 
+                    <polygon points="14,3 3,14 25,14" />    
+                </svg>
+            </button>
         </div>
-        <div>
-            <label>Move Left: </label>
-            <button class="keybindBtn" id="keybindLeftBtn">A</button>
+        <div class="settings-content-wrapper">
+            <div>
+                <label for="volumeSlider">Master Volume:</label>
+                <input type="range" id="volumeSlider" min="0" max="100" value="70">
+                <span id="volumeValueDisplay" class="slider-value-display">70</span>
+            </div>
+            <div>
+                <label for="sensitivitySlider">Bucket Sensitivity:</label>
+                <input type="range" id="sensitivitySlider" min="1" max="10" value="5">
+                <span id="sensitivityValueDisplay" class="slider-value-display">5</span>
+            </div>
+            <div>
+                <label>Move Bucket Left: </label>
+                <button class="keybindBtn" id="keybindLeftBtn">A</button>
+            </div>
+            <div>
+                <label>Move Bucket Right: </label>
+                <button class="keybindBtn" id="keybindRightBtn">D</button>
+            </div>
+            <div>
+                <label>Max Speed Toggle: </label>
+                <button class="keybindBtn" id="keybindMaxSpeedBtn">W</button>
+            </div>
+            <div>
+                <label>Pause Game: </label>
+                <button class="keybindBtn" id="keybindPauseBtn">P</button>
+            </div>
         </div>
-        <div>
-            <label>Move Right: </label>
-            <button class="keybindBtn" id="keybindRightBtn">D</button>
-        </div>
-        <div>
-            <label>Max Speed Toggle: </label>
-            <button class="keybindBtn" id="keybindMaxSpeedBtn">W</button>
-        </div>
-        
-        <button id="exitSettingsBtn">Back to Home</button>
     </div>
 
     <div id="highScoresScreen" class="screen">
-        <h2>High Scores</h2>
+        <div class="screen-header">
+            <h2>High Scores</h2>
+            <button id="highScoresToHomeBtnIcon" class="home-icon-btn" title="Back to Home">
+                <svg viewBox="0 0 28 25" class="home-svg-icon" xmlns="http://www.w3.org/2000/svg">
+                    <polygon points="7,23 7,13.5 21,13.5 21,23" />
+                    <polygon points="14,3 3,14 25,14" />
+                </svg>
+            </button>
+        </div>
         <ol id="highScoresList"></ol>
-        <button id="highScoresToHomeBtn">Back to Home</button>
     </div>
 
-    <div id="howToPlayScreen" class="screen">
-        <h2>How to Play</h2>
-        <div id="howToPlayScreenContent">
-             <!-- Content from your "code (5).html" file -->
+    <div id="howToPlayScreen" class="screen"> 
+        <div class="screen-header">
+            <h2>How to Play</h2>
+            <button id="howToPlayToHomeBtnIcon" class="home-icon-btn" title="Back to Home">
+                <svg viewBox="0 0 28 25" class="home-svg-icon" xmlns="http://www.w3.org/2000/svg">
+                    <polygon points="7,23 7,13.5 21,13.5 21,23" />
+                    <polygon points="14,3 3,14 25,14" />
+                </svg>
+            </button>
+        </div>
+        <div id="howToPlayScreenContent"> 
             <p><strong>Objective:</strong> Score as many points as possible before running out of lives!</p>
+            
             <h3>Controls:</h3>
             <ul>
                 <li>Use your mouse to move the <strong>Color Wheel</strong>.</li>
-                <li>Use the 'A' and 'D' keys (or your custom keybinds) to move the bucket at the bottom.</li>
-                <li>Hold 'W' (or custom keybind) to temporarily set droppers to max movement and drop speed.</li>
+                <li>Use the <strong>'A'</strong> and <strong>'D'</strong> keys (or your custom keybinds) to move the <strong>Bucket</strong> left and right at the bottom of the screen.</li>
+                <li>Hold <strong>'W'</strong> (or your custom keybind) to temporarily activate <strong>Max Speed Mode</strong>.</li>
+                <li>Press <strong>'P'</strong> (or your custom keybind) to pause or resume the game.</li>
+                 <li>Press <strong>'Escape'</strong> to return to the main menu.</li>
             </ul>
+
             <h3>Gameplay:</h3>
             <ul>
-                <li>Two droppers at the top release balls. They move side-to-side and speed up over time.</li>
-                <li>The primary dropper releases colored balls (Red, Green, Blue) or rarely, a Yellow Powerup Ball.</li>
-                <li>The secondary dropper releases White balls or rarely, a Yellow Powerup Ball.</li>
-                <li>Balls fall at random speeds and sizes, and sway slightly.</li>
-                <li>Droppers also drop balls more frequently over time.</li>
+                <li>Balls of different types will fall from two droppers at the top.</li>
+                <li>The <strong>Primary Dropper</strong> releases blue, green, red, and yellow (power-up) balls.</li>
+                <li>The <strong>Secondary Dropper</strong> releases white and yellow (power-up) balls.</li>
+                <li>Touch the matching color segment of your <strong>Color Wheel</strong> to the blue, green, or red balls to catch them.</li>
+                <li><strong>White balls</strong> can be caught by any segment of the Color Wheel.</li>
+                <li>The <strong>Bucket</strong> at the bottom can catch missed balls as a safety net.</li>
+                <li>Difficulty increases over time (faster droppers, more frequent balls).</li>
             </ul>
+
             <h3>Scoring:</h3>
             <ul>
-                <li>Catch a colored or white ball in the bucket (on any of its surfaces): <strong>+1 point</strong>.</li>
-                <li>Match the colored segment of your <strong>Color Wheel</strong> with a ball of the same color: <strong>+3 points</strong>.
+                <li><strong>Color Wheel Catch:</strong> +3 points.</li>
+                <li><strong>Bucket Catch:</strong> +1 point.</li>
+            </ul>
+
+            <h3>Power-ups:</h3>
+            <ul>
+                <li><strong>Slow Fall:</strong> Balls fall slower.</li>
+                <li><strong>Wide Bucket:</strong> Bucket becomes wider.</li>
+                <li><strong>One Color:</strong> Primary dropper releases balls of a single color.</li>
+                <li><strong>Double Points:</strong> All points scored are doubled.</li>
+                <li><strong>Magnet:</strong> White balls are attracted to your Color Wheel.</li>
+                <li><strong>Invincibility:</strong> You cannot lose lives.</li>
+                <li><strong>+3 Lives:</strong> Instantly grants 3 additional lives.</li>
+                <li>Power-ups last 10 seconds.</li>
+            </ul>
+
+            <h3>Losing Lives:</h3>
+            <ul>
+                <li>Start with 3 lives.</li>
+                <li>Lose one life if:
                     <ul>
-                        <li>Red segment (top-left) with Red ball.</li>
-                        <li>Green segment (top-right) with Green ball.</li>
-                        <li>Blue segment (bottom) with Blue ball.</li>
+                        <li>A colored ball is touched by the <strong>wrong</strong> Color Wheel segment.</li>
+                        <li>A ball is missed by both Color Wheel and Bucket.</li>
                     </ul>
                 </li>
-                <li>Touch a White ball with any part of your <strong>Color Wheel</strong>: <strong>+1 point</strong>.</li>
-                <li>Powerup: Double Points - all scores are doubled while active.</li>
+                <li>White or Power-up balls falling off screen do <em>not</em> cause life loss.</li>
+                <li>Game ends at zero lives.</li>
             </ul>
-            <h3>Powerups (Yellow Balls):</h3>
-            <p>Collect a Yellow Ball with the bucket or <strong>Color Wheel</strong> (any segment) to get a random powerup:</p>
-            <ul>
-                <li><strong>Gravity Slowed:</strong> Balls fall at 65% speed for 8 seconds.</li>
-                <li><strong>Enlarged Bucket:</strong> Bucket becomes twice as wide for 8 seconds.</li>
-                <li><strong>One Color:</strong> All primary (colored) balls drop as a single random color (Red, Green, or Blue) for 8 seconds.</li>
-                <li><strong>Double Points:</strong> All points earned are doubled for 8 seconds.</li>
-                <li><strong>+3 Lives:</strong> Instantly gain 3 extra lives (no duration).</li>
-            </ul>
-            <p>Active timed powerups are shown by icons on the left. They flash when about to expire. Collecting the same powerup resets its duration.</p>
-            <h3>Losing Lives:</h3>
-            <p>You start with 3 lives. You lose a life if:</p>
-            <ul>
-                <li>A colored ball hits a non-matching color segment of your <strong>Color Wheel</strong>.</li>
-                <li>A ball falls to the bottom of the screen without being caught by the <strong>Color Wheel</strong> or the bucket.</li>
-            </ul>
-            <p>The game ends when you run out of lives. If you set a new personal best, it will be highlighted!</p>
-            <p>If you switch tabs or unfocus the game, it will pause automatically. Click the game area to resume.</p>
         </div>
-        <button id="howToPlayToHomeBtn">Back to Home</button>
     </div>
 
+    <div id="quitConfirmationDialog" style="display:none;">
+        <p>Are you sure you want to quit?</p>
+        <div id="quitConfirmationButtons">
+            <button id="confirmQuitBtn">Quit</button>
+            <button id="cancelQuitBtn">Cancel</button>
+        </div>
+    </div>
 
 <script>
+
 // --- Constants and Game Variables ---
-// (Copied from your "code (5).html")
-let MAX_SCALING_TIME_MS = 2 * 60 * 1000; 
-let canvas, ctx;
+let MAX_SCALING_TIME_MS = 2 * 60 * 1000;
+let gameCanvas, gameCtx;
+let atmosphericCanvas, atmosphericCtx; 
 let gameWidth, gameHeight;
 let score = 0, lives = 3, elapsedGameTimeMs = 0;
 let gameRunning = false, gamePaused = false;
-let animationFrameId, lastTime = 0, timePausedStarted = 0; 
-let dropper1, dropper2; 
+let animationFrameId, lastTime = 0, timePausedStarted = 0;
+let dropper1, dropper2;
 const balls = [];
 let bucket, playerCursor;
-const colorWheelParticles = []; 
-const BALL_COLORS = ['#FF4136', '#2ECC40', '#0074D9']; 
+const colorWheelParticles = [];
+const POWERUP_BALL_GLOW_COLOR = 'rgba(255, 229, 100, 0.2)';
+const powerupGlowParticles = [];
+const atmosphericParticles = []; 
+const NUM_ATMOSPHERIC_PARTICLES = 150;
+const ATMOSPHERIC_PARTICLE_ACCEL_STRENGTH = 150; 
+const ATMOSPHERIC_PARTICLE_MAX_SPEED_COMPONENT = 5;
+
+const NUM_TEXTURE_PARTICLES = 400; 
+const textureParticles = [];      
+
+const BALL_COLORS = ['#FF0000', '#00FF00', '#0000FF']; 
 const BALL_COLOR_NAMES = ['red', 'green', 'blue'];
-const POWERUP_BALL_COLOR = '#FFEB3B'; 
-const WHITE_BALL_COLOR = '#FFFFFF';
-let BALL_RADIUS_BASE; 
-const MIN_BALL_FALL_TIME_S = 3.0; 
-const MAX_BALL_FALL_TIME_S = 7.0; 
-const BALL_SWAY_AMPLITUDE_RATIO = 0.03; 
-const BALL_SWAY_SPEED = 1.5; 
+const POWERUP_BALL_COLOR_HEX = '#FFD500'; 
+const WHITE_BALL_COLOR_HEX = '#E0E0E0'; 
+
+let BALL_RADIUS_BASE;
+const MIN_BALL_FALL_TIME_S = 3.0;
+const MAX_BALL_FALL_TIME_S = 7.0;
+const BALL_SWAY_AMPLITUDE_RATIO = 0.03;
 const DROPPER_COLOR = 'gray';
-let DROPPER_WIDTH_BOTTOM; 
+let DROPPER_WIDTH_BOTTOM;
 const DROPPER_HEIGHT = 30;
-const DROPPER_TOP_WIDTH_RATIO = 0.5; 
-let INITIAL_DROPPER_TIME_PER_SCREEN_S = 7; 
+const DROPPER_TOP_WIDTH_RATIO = 0.5;
+let INITIAL_DROPPER_TIME_PER_SCREEN_S = 7;
 const FINAL_DROPPER_TIME_PER_SCREEN_S = 2;
-let INITIAL_BALL_DROP_INTERVAL_MS = 1000; 
-let FINAL_BALL_DROP_INTERVAL_MS = 250;   
+let INITIAL_BALL_DROP_INTERVAL_MS = 1000;
+let FINAL_BALL_DROP_INTERVAL_MS = 250;
 const BUCKET_COLOR = 'gray';
-const BUCKET_HEIGHT = 20;
-const BUCKET_BASE_WIDTH_RATIO_NORMAL = 0.15; 
-const BUCKET_BASE_WIDTH_RATIO_WIDE = 0.30; 
+const BUCKET_HEIGHT = 20; 
+const BUCKET_LINE_WIDTH = 4.5; 
+const BUCKET_BASE_WIDTH_RATIO_NORMAL = 0.18;
+const BUCKET_BASE_WIDTH_RATIO_WIDE = 0.42;
 let currentBucketBaseWidthRatio = BUCKET_BASE_WIDTH_RATIO_NORMAL;
-const BUCKET_SIDE_ANGLE = Math.PI / 8; 
-let BUCKET_SENSITIVITY = 5; 
-let MIN_BUCKET_TRAVERSE_TIME_S = 1.0; 
-let MAX_BUCKET_TRAVERSE_TIME_S = 5;   
+const BUCKET_SIDE_ANGLE = Math.PI / 8;
+let BUCKET_SENSITIVITY = 5;
+let MIN_BUCKET_TRAVERSE_TIME_S = 1.0;
+let MAX_BUCKET_TRAVERSE_TIME_S = 5;
 let currentBucketSpeedPPS;
 let PLAYER_CURSOR_OUTER_RADIUS, PLAYER_CURSOR_RING_THICKNESS;
-const PLAYER_CURSOR_OUTLINE_COLORS = ['#FF4136', '#2ECC40', '#0074D9'];
-const PLAYER_CURSOR_SEGMENT_ANGLES = { green: { start: -Math.PI / 6, end: Math.PI / 2 }, red: { start: Math.PI / 2, end: 7 * Math.PI / 6 }, blue: { start: 7 * Math.PI / 6, end: 11 * Math.PI / 6}};
+const PLAYER_CURSOR_OUTLINE_COLORS = ['#FF0000', '#00FF00', '#0000FF']; 
+const PLAYER_CURSOR_SEGMENT_ANGLES = {
+    red:   { start: Math.PI / 6,       end: 5 * Math.PI / 6 },   
+    blue:  { start: 5 * Math.PI / 6,   end: 3 * Math.PI / 2 },   
+    green: { start: 3 * Math.PI / 2,   end: Math.PI / 6     }    
+};
 const keysPressed = {};
-let keybindLeft = 'a', keybindRight = 'd', keybindMaxSpeed = 'w'; 
+let keybindLeft = 'a', keybindRight = 'd', keybindMaxSpeed = 'w', keybindPause = 'p';
 let listeningForKeybind = null;
-const POWERUP_DURATION_MS = 8000; 
+const POWERUP_DURATION_MS = 10000;
 const POWERUP_FLASH_THRESHOLD_MS = 2000;
-const activePowerups = { slowFall: { active: false, endTime: 0, originalValue: 1.0 }, wideBucket: { active: false, endTime: 0 }, oneColor: { active: false, endTime: 0, color: null }, doublePoints: { active: false, endTime: 0 }};
+const MIN_BALL_SIZE_MULTIPLIER = 0.6;
+const MAX_BALL_SIZE_MULTIPLIER = 1.4 * 1.1;
+const SLOW_FALL_SPEED_MULTIPLIER = 0.45;
+const ORIGINAL_BALL_SWAY_SPEED = 1.5;
+let currentBallSwaySpeed = ORIGINAL_BALL_SWAY_SPEED;
+
+const activePowerups = { 
+    slowFall: { active: false, endTime: 0 }, 
+    wideBucket: { active: false, endTime: 0 }, 
+    oneColor: { active: false, endTime: 0, color: null }, 
+    doublePoints: { active: false, endTime: 0 },
+    whiteBallMagnet: { active: false, endTime: 0},
+    invincibility: { active: false, endTime: 0}
+};
+const MAGNET_BASE_PULL_PPS = 40; 
+const MAGNET_PROXIMITY_INTENSITY = 15000; 
 
 
-// DOM Elements - Declare globally
-// (Copied from your code (5).html)
+// DOM Elements
 let screens = {};
-let scoreDisplay, timeDisplay, livesDisplay; 
-let finalScoreDisplay, finalTimeDisplay;
+let scoreDisplay, timeDisplay, livesDisplay;
+let finalScoreDisplay, finalTimeDisplay, gameOverQuitBtn;
 let sensitivitySlider, sensitivityValueDisplay;
-let keybindLeftBtn, keybindRightBtn, keybindMaxSpeedBtn; 
+let volumeSlider, volumeValueDisplay; 
+let keybindLeftBtn, keybindRightBtn, keybindMaxSpeedBtn, keybindPauseBtn;
 let highScoresListElem;
-let quitGameBtn, pauseOverlay;
 let newHighScoreTextElem;
 let powerupIconElems = {};
 let audioCtx;
+let masterVolume = 0.7; 
+
+let quitConfirmationDialog, confirmQuitBtn, cancelQuitBtn, gameScreenHomeBtn;
+let gameWasPausedBeforeConfirmation = false;
+let gamePausedByConfirmation = false;
 
 
 // --- Initialization ---
 window.onload = () => {
-    // (Copied from your code (5).html)
-    canvas = document.getElementById('gameCanvas');
-    ctx = canvas.getContext('2d');
-    gameWidth = canvas.width = Math.min(800, window.innerWidth * 0.9);
-    gameHeight = canvas.height = Math.min(600, window.innerHeight * 0.8);
-    PLAYER_CURSOR_OUTER_RADIUS = gameWidth * 0.05; 
+    gameCanvas = document.getElementById('gameCanvas');
+    gameCtx = gameCanvas.getContext('2d');
+    atmosphericCanvas = document.getElementById('atmosphericCanvas'); 
+    atmosphericCtx = atmosphericCanvas.getContext('2d');              
+
+    gameWidth = gameCanvas.width = atmosphericCanvas.width = Math.min(800, window.innerWidth * 0.9);
+    gameHeight = gameCanvas.height = atmosphericCanvas.height = Math.min(600, window.innerHeight * 0.8);
+    
+    const gameCanvasRect = gameCanvas.getBoundingClientRect();
+    const bodyRect = document.body.getBoundingClientRect();
+    atmosphericCanvas.style.top = `${gameCanvasRect.top - bodyRect.top}px`;
+    atmosphericCanvas.style.left = `${gameCanvasRect.left - bodyRect.left}px`; 
+    atmosphericCanvas.style.transform = ''; 
+
+    PLAYER_CURSOR_OUTER_RADIUS = gameWidth * 0.05;
     PLAYER_CURSOR_RING_THICKNESS = PLAYER_CURSOR_OUTER_RADIUS * 0.35;
-    BALL_RADIUS_BASE = (PLAYER_CURSOR_OUTER_RADIUS - PLAYER_CURSOR_RING_THICKNESS) / 3.5; 
-    DROPPER_WIDTH_BOTTOM = BALL_RADIUS_BASE * 2 * 1.4; 
+    BALL_RADIUS_BASE = (PLAYER_CURSOR_OUTER_RADIUS - PLAYER_CURSOR_RING_THICKNESS) / 3.5;
+    DROPPER_WIDTH_BOTTOM = BALL_RADIUS_BASE * MAX_BALL_SIZE_MULTIPLIER * 2;
     screens.home = document.getElementById('homeScreen');
     screens.game = document.getElementById('gameScreen');
     screens.settings = document.getElementById('settingsScreen');
     screens.highScores = document.getElementById('highScoresScreen');
-    screens.gameOver = document.getElementById('gameOverScreen');
     screens.howToPlay = document.getElementById('howToPlayScreen');
     scoreDisplay = document.getElementById('scoreDisplay');
     timeDisplay = document.getElementById('timeDisplay');
     livesDisplay = document.getElementById('livesDisplay');
     finalScoreDisplay = document.getElementById('finalScoreDisplay');
     finalTimeDisplay = document.getElementById('finalTimeDisplay');
+    gameOverQuitBtn = document.getElementById('gameOverQuitBtn');
+    
+    volumeSlider = document.getElementById('volumeSlider');
+    volumeValueDisplay = document.getElementById('volumeValueDisplay');
     sensitivitySlider = document.getElementById('sensitivitySlider');
     sensitivityValueDisplay = document.getElementById('sensitivityValueDisplay');
+
     keybindLeftBtn = document.getElementById('keybindLeftBtn');
     keybindRightBtn = document.getElementById('keybindRightBtn');
     keybindMaxSpeedBtn = document.getElementById('keybindMaxSpeedBtn');
+    keybindPauseBtn = document.getElementById('keybindPauseBtn');
     highScoresListElem = document.getElementById('highScoresList');
-    quitGameBtn = document.getElementById('quitGameBtn');
-    pauseOverlay = document.getElementById('pauseOverlay');
     newHighScoreTextElem = document.getElementById('newHighScoreText');
     powerupIconElems.slowFall = document.getElementById('slowFallIcon');
     powerupIconElems.wideBucket = document.getElementById('wideBucketIcon');
     powerupIconElems.oneColor = document.getElementById('oneColorIcon');
     powerupIconElems.doublePoints = document.getElementById('doublePointsIcon');
+    powerupIconElems.whiteBallMagnet = document.getElementById('magnetIcon');
+    powerupIconElems.invincibility = document.getElementById('invincibilityIcon');
+    
+    quitConfirmationDialog = document.getElementById('quitConfirmationDialog');
+    confirmQuitBtn = document.getElementById('confirmQuitBtn');
+    cancelQuitBtn = document.getElementById('cancelQuitBtn');
+    gameScreenHomeBtn = document.getElementById('gameScreenHomeBtnInOverlay');
+
+    initAudio();
+    initTextureParticles();      
+    initAtmosphericParticles();  
     loadSettings();
     updateBucketSpeed();
-    setupEventListeners(); 
+    setupEventListeners();
     showScreen('home');
     document.addEventListener('visibilitychange', handleVisibilityChange);
     window.addEventListener('blur', handleFocusChange);
     window.addEventListener('focus', handleFocusChange);
+    window.addEventListener('resize', handleResize);
+
+    atmosphericCtx.clearRect(0, 0, gameWidth, gameHeight); 
+    drawTextureParticles(atmosphericCtx);
 };
 
-// --- Pause/Resume Logic ---
-// (Copied from your code (5).html)
-function handleVisibilityChange() { if (document.hidden && gameRunning && !gamePaused) { pauseGame(); } }
-function handleFocusChange(event) { if (event.type === 'blur' && gameRunning && !gamePaused) { pauseGame(); } }
-function pauseGame() { if (!gameRunning || gamePaused) return; gamePaused = true; timePausedStarted = performance.now(); if (animationFrameId) cancelAnimationFrame(animationFrameId); if(pauseOverlay) pauseOverlay.style.display = 'flex'; playSound('click'); }
-function resumeGame() { if (!gameRunning || !gamePaused) return; gamePaused = false; const timeWasPaused = performance.now() - timePausedStarted; lastTime += timeWasPaused; if(pauseOverlay) pauseOverlay.style.display = 'none'; animationFrameId = requestAnimationFrame(gameLoop); playSound('click'); }
+function handleResize() {
+    gameWidth = gameCanvas.width = atmosphericCanvas.width = Math.min(800, window.innerWidth * 0.9);
+    gameHeight = gameCanvas.height = atmosphericCanvas.height = Math.min(600, window.innerHeight * 0.8);
+    
+    const gameCanvasRect = gameCanvas.getBoundingClientRect();
+    const bodyRect = document.body.getBoundingClientRect();
+    atmosphericCanvas.style.top = `${gameCanvasRect.top - bodyRect.top}px`;
+    atmosphericCanvas.style.left = `${gameCanvasRect.left - bodyRect.left}px`;
+    atmosphericCanvas.style.transform = '';
 
-// --- Audio Logic ---
-// (Copied from your code (5).html)
-function initAudio() { if (!audioCtx) { try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); if (audioCtx.state === 'suspended') { audioCtx.resume(); } } catch (e) { console.error("Web Audio API is not supported in this browser", e); return false; } } return true; }
-function playSound(type) { if (!audioCtx || audioCtx.state === 'suspended' || gamePaused) return; const oscillator = audioCtx.createOscillator(), gainNode = audioCtx.createGain(); oscillator.connect(gainNode); gainNode.connect(audioCtx.destination); const now = audioCtx.currentTime; switch (type) { case 'click': oscillator.type = 'triangle'; oscillator.frequency.setValueAtTime(1000, now); gainNode.gain.setValueAtTime(0.1, now); gainNode.gain.exponentialRampToValueAtTime(0.0001, now + 0.1); oscillator.start(now); oscillator.stop(now + 0.1); break; case 'drop': oscillator.type = 'sine'; oscillator.frequency.setValueAtTime(200, now); gainNode.gain.setValueAtTime(0.15, now); gainNode.gain.exponentialRampToValueAtTime(0.0001, now + 0.2); oscillator.start(now); oscillator.stop(now + 0.2); break; case 'collectGood': oscillator.type = 'sine'; oscillator.frequency.setValueAtTime(660, now); gainNode.gain.setValueAtTime(0.2, now); gainNode.gain.exponentialRampToValueAtTime(0.0001, now + 0.15); oscillator.start(now); oscillator.stop(now + 0.15); break; case 'collectBucket': oscillator.type = 'square'; oscillator.frequency.setValueAtTime(440, now); gainNode.gain.setValueAtTime(0.15, now); gainNode.gain.exponentialRampToValueAtTime(0.0001, now + 0.15); oscillator.start(now); oscillator.stop(now + 0.15); break; case 'loseLife': oscillator.type = 'sawtooth'; oscillator.frequency.setValueAtTime(150, now); oscillator.frequency.exponentialRampToValueAtTime(80, now + 0.3); gainNode.gain.setValueAtTime(0.25, now); gainNode.gain.exponentialRampToValueAtTime(0.0001, now + 0.3); oscillator.start(now); oscillator.stop(now + 0.3); break; case 'powerupCollect': oscillator.type = 'triangle'; oscillator.frequency.setValueAtTime(880, now); oscillator.frequency.exponentialRampToValueAtTime(1320, now + 0.1); gainNode.gain.setValueAtTime(0.25, now); gainNode.gain.exponentialRampToValueAtTime(0.0001, now + 0.3); oscillator.start(now); oscillator.stop(now + 0.3); break;}}
+    initTextureParticles(); 
+    initAtmosphericParticles(); 
+    PLAYER_CURSOR_OUTER_RADIUS = gameWidth * 0.05; 
+    PLAYER_CURSOR_RING_THICKNESS = PLAYER_CURSOR_OUTER_RADIUS * 0.35;
+    BALL_RADIUS_BASE = (PLAYER_CURSOR_OUTER_RADIUS - PLAYER_CURSOR_RING_THICKNESS) / 3.5; 
+    DROPPER_WIDTH_BOTTOM = BALL_RADIUS_BASE * MAX_BALL_SIZE_MULTIPLIER * 2; 
+    if (bucket) { 
+        bucket.baseWidth = gameWidth * currentBucketBaseWidthRatio;
+        bucket.x = (gameWidth / 2) - (bucket.baseWidth / 2); 
+        bucket.y = gameHeight - BUCKET_HEIGHT - (BUCKET_LINE_WIDTH / 2); 
+    }
+    if (dropper1) { dropper1.x = gameWidth / 2 - dropper1.width / 2; }
+    if (dropper2) { dropper2.x = gameWidth / 2 - dropper2.width / 2; }
 
-// --- Screen Management ---
-// (Copied from your code (5).html)
-function showScreen(screenName) { if (!screens.home) return; Object.values(screens).forEach(s => { if(s) s.classList.remove('active'); }); if (screenName === 'gameOver') { if(screens.game) screens.game.classList.add('active'); if(screens.gameOver) screens.gameOver.style.display = 'flex';} else { if(screens[screenName]) screens[screenName].classList.add('active'); if(screens.gameOver) screens.gameOver.style.display = 'none'; } if (screenName !== 'game' && screenName !== 'gameOver') { playSound('click');} if (screenName === 'game' && pauseOverlay) pauseOverlay.style.display = 'none'; }
+    atmosphericCtx.clearRect(0, 0, gameWidth, gameHeight); 
+    drawTextureParticles(atmosphericCtx);
+}
 
-// --- Event Listeners ---
-// (Copied from your code (5).html)
-function setupEventListeners() { if (!document.getElementById('startGameBtn')) { console.error("DOM not ready for event listeners or button ID mismatch."); return; } document.getElementById('startGameBtn').addEventListener('click', startGame); document.getElementById('settingsBtn').addEventListener('click', () => showScreen('settings')); document.getElementById('highScoresBtn').addEventListener('click', () => { loadHighScores(); showScreen('highScores'); }); document.getElementById('howToPlayBtn').addEventListener('click', () => showScreen('howToPlay')); sensitivitySlider.addEventListener('input', (e) => { BUCKET_SENSITIVITY = parseInt(e.target.value); sensitivityValueDisplay.textContent = BUCKET_SENSITIVITY; updateBucketSpeed(); saveSettings(); playSound('click'); }); keybindLeftBtn.addEventListener('click', () => startListeningForKeybind('left')); keybindRightBtn.addEventListener('click', () => startListeningForKeybind('right')); keybindMaxSpeedBtn.addEventListener('click', () => startListeningForKeybind('maxSpeed')); document.getElementById('exitSettingsBtn').addEventListener('click', () => showScreen('home')); document.getElementById('highScoresToHomeBtn').addEventListener('click', () => showScreen('home')); document.getElementById('howToPlayToHomeBtn').addEventListener('click', () => showScreen('home')); document.getElementById('playAgainBtn').addEventListener('click', startGame); document.getElementById('gameOverToHomeBtn').addEventListener('click', () => showScreen('home')); quitGameBtn.addEventListener('click', () => { if (gameRunning) { gameRunning = false; gamePaused = false; if (animationFrameId) cancelAnimationFrame(animationFrameId); showScreen('home'); playSound('click'); } }); pauseOverlay.addEventListener('click', resumeGame); window.addEventListener('keydown', (e) => { if (listeningForKeybind) { setKeybind(e.key); } else if (gameRunning && !gamePaused) { keysPressed[e.key.toLowerCase()] = true;} }); window.addEventListener('keyup', (e) => { if (gameRunning && !gamePaused) { keysPressed[e.key.toLowerCase()] = false;} }); document.addEventListener('mousemove', (e) => { if (gameRunning && !gamePaused && playerCursor) { const rect = canvas.getBoundingClientRect(); playerCursor.x = e.clientX - rect.left; playerCursor.y = e.clientY - rect.top; addColorWheelParticle(playerCursor.x, playerCursor.y); } });}
+function handleVisibilityChange() { if (document.hidden && gameRunning && !gamePaused && (!quitConfirmationDialog || quitConfirmationDialog.style.display === 'none')) { pauseGame(); } }
+function handleFocusChange(event) { if (event.type === 'blur' && gameRunning && !gamePaused && (!quitConfirmationDialog || quitConfirmationDialog.style.display === 'none')) { pauseGame(); } }
 
-// --- Settings & High Scores ---
-// (Copied from your code (5).html)
-function loadSettings() { const savedSensitivity = localStorage.getItem('bucketSensitivity'); if (savedSensitivity) BUCKET_SENSITIVITY = parseInt(savedSensitivity);  if(sensitivitySlider) sensitivitySlider.value = BUCKET_SENSITIVITY;  if(sensitivityValueDisplay) sensitivityValueDisplay.textContent = BUCKET_SENSITIVITY; const savedKeyLeft = localStorage.getItem('keybindLeft'); if (savedKeyLeft) keybindLeft = savedKeyLeft;  if(keybindLeftBtn) keybindLeftBtn.textContent = keybindLeft.toUpperCase(); const savedKeyRight = localStorage.getItem('keybindRight'); if (savedKeyRight) keybindRight = savedKeyRight;  if(keybindRightBtn) keybindRightBtn.textContent = keybindRight.toUpperCase(); const savedKeyMaxSpeed = localStorage.getItem('keybindMaxSpeed'); if (savedKeyMaxSpeed) keybindMaxSpeed = savedKeyMaxSpeed; if(keybindMaxSpeedBtn) keybindMaxSpeedBtn.textContent = keybindMaxSpeed.toUpperCase();}
-function saveSettings() { localStorage.setItem('bucketSensitivity', BUCKET_SENSITIVITY); localStorage.setItem('keybindLeft', keybindLeft); localStorage.setItem('keybindRight', keybindRight); localStorage.setItem('keybindMaxSpeed', keybindMaxSpeed);}
-function startListeningForKeybind(type) { playSound('click'); listeningForKeybind = type; let btnToUpdate; if (type === 'left') btnToUpdate = keybindLeftBtn; else if (type === 'right') btnToUpdate = keybindRightBtn; else if (type === 'maxSpeed') btnToUpdate = keybindMaxSpeedBtn; if(btnToUpdate) btnToUpdate.textContent = 'Press key...'; [keybindLeftBtn, keybindRightBtn, keybindMaxSpeedBtn].forEach(btn => { if (btn !== btnToUpdate && btn) btn.disabled = true; });}
-function setKeybind(key) { if (!listeningForKeybind || key === 'Escape') {/*cancelled*/} else { if (listeningForKeybind === 'left') keybindLeft = key.toLowerCase(); else if (listeningForKeybind === 'right') keybindRight = key.toLowerCase(); else if (listeningForKeybind === 'maxSpeed') keybindMaxSpeed = key.toLowerCase(); saveSettings(); playSound('click');} if(keybindLeftBtn) keybindLeftBtn.textContent = keybindLeft.toUpperCase(); if(keybindRightBtn) keybindRightBtn.textContent = keybindRight.toUpperCase(); if(keybindMaxSpeedBtn) keybindMaxSpeedBtn.textContent = keybindMaxSpeed.toUpperCase(); listeningForKeybind = null; [keybindLeftBtn, keybindRightBtn, keybindMaxSpeedBtn].forEach(btn => {if(btn) btn.disabled = false;});}
+function togglePause() { 
+    if (!gameRunning) return; 
+    if (quitConfirmationDialog && quitConfirmationDialog.style.display !== 'none') return;
+    
+    if (gamePaused) { 
+        resumeGame(); 
+    } else { 
+        pauseGame(); 
+    } 
+}
+
+function pauseGame() { 
+    if (!gameRunning || gamePaused) return; 
+    gamePaused = true; 
+    gamePausedByConfirmation = false; 
+    timePausedStarted = performance.now(); 
+    if (animationFrameId) cancelAnimationFrame(animationFrameId); 
+    const pauseOverlayElem = document.getElementById('pauseOverlay');
+    if(pauseOverlayElem) pauseOverlayElem.style.display = 'flex'; 
+    if (gameCanvas) gameCanvas.style.cursor = 'default'; 
+    playSound('click'); 
+}
+
+function resumeGame() { 
+    if (!gameRunning || !gamePaused) return; 
+    if (quitConfirmationDialog && quitConfirmationDialog.style.display !== 'none') {
+        return;
+    }
+    gamePaused = false; 
+    gamePausedByConfirmation = false; 
+    const timeWasPaused = performance.now() - timePausedStarted; 
+    lastTime += timeWasPaused; 
+    const pauseOverlayElem = document.getElementById('pauseOverlay');
+    if(pauseOverlayElem) pauseOverlayElem.style.display = 'none'; 
+    animationFrameId = requestAnimationFrame(gameLoop); 
+    if (gameCanvas) gameCanvas.style.cursor = 'none'; 
+    playSound('click'); 
+}
+
+function showQuitConfirmation() {
+    if (quitConfirmationDialog) {
+        if (gameRunning) {
+            if (!gamePaused) { 
+                gameWasPausedBeforeConfirmation = false;
+                gamePausedByConfirmation = true; 
+                
+                gamePaused = true; 
+                timePausedStarted = performance.now();
+                if (animationFrameId) cancelAnimationFrame(animationFrameId);
+                if (gameCanvas) gameCanvas.style.cursor = 'default';
+            } else { 
+                gameWasPausedBeforeConfirmation = true;
+                gamePausedByConfirmation = false; 
+            }
+        }
+        quitConfirmationDialog.style.display = 'flex';
+        playSound('click');
+    }
+}
+
+function hideQuitConfirmation() { 
+    if (quitConfirmationDialog) {
+        quitConfirmationDialog.style.display = 'none';
+        
+        if (gameRunning && gamePausedByConfirmation) { 
+            gamePaused = false; 
+            const timeWasPaused = performance.now() - timePausedStarted;
+            lastTime += timeWasPaused;
+            animationFrameId = requestAnimationFrame(gameLoop);
+            if (gameCanvas) gameCanvas.style.cursor = 'none'; 
+        }
+        gamePausedByConfirmation = false; 
+        playSound('click');
+    }
+}
+
+
+function initAudio() { if (!audioCtx) { try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { console.error("Web Audio API is not supported in this browser", e); return false; } } return true; }
+function _playSoundInternal(soundType) { 
+    if (!audioCtx || audioCtx.state !== 'running') { return; } 
+    if (masterVolume === 0) return; 
+    if (gamePaused && !gamePausedByConfirmation && 
+        soundType !== 'click' && 
+        soundType !== 'powerupCollect' && 
+        soundType !== 'collectGoodDouble') return; 
+
+    const oscillator = audioCtx.createOscillator(), gainNode = audioCtx.createGain(); 
+    oscillator.connect(gainNode); 
+    gainNode.connect(audioCtx.destination); 
+    const now = audioCtx.currentTime; 
+    let duration = 0.1; 
+    let baseGain = 0.1;
+
+    switch (soundType) { 
+        case 'click': oscillator.type = 'triangle'; oscillator.frequency.setValueAtTime(1000, now); baseGain = 0.1; duration = 0.1; break; 
+        case 'drop': oscillator.type = 'sine'; oscillator.frequency.setValueAtTime(200, now); baseGain = 0.15; duration = 0.2; break; 
+        case 'collectGood': oscillator.type = 'sine'; oscillator.frequency.setValueAtTime(660, now); baseGain = 0.2; duration = 0.15; break; 
+        case 'collectGoodDouble': oscillator.type = 'sine'; oscillator.frequency.setValueAtTime(880, now); oscillator.frequency.exponentialRampToValueAtTime(990, now + 0.05); baseGain = 0.22; duration = 0.18; break; 
+        case 'collectBucket': oscillator.type = 'square'; oscillator.frequency.setValueAtTime(440, now); baseGain = 0.15; duration = 0.15; break; 
+        case 'loseLife': oscillator.type = 'sawtooth'; oscillator.frequency.setValueAtTime(150, now); oscillator.frequency.exponentialRampToValueAtTime(80, now + 0.3); baseGain = 0.25; duration = 0.3; break; 
+        case 'powerupCollect': oscillator.type = 'triangle'; oscillator.frequency.setValueAtTime(880, now); oscillator.frequency.exponentialRampToValueAtTime(1320, now + 0.1); baseGain = 0.25; duration = 0.3; break; 
+        default: oscillator.disconnect(); gainNode.disconnect(); return; 
+    } 
+    
+    const actualGain = baseGain * masterVolume;
+    gainNode.gain.setValueAtTime(actualGain, now); 
+    gainNode.gain.exponentialRampToValueAtTime(0.0001, now + duration); 
+    oscillator.start(now); 
+    oscillator.stop(now + duration); 
+}
+function playSound(type) { if (!initAudio()) { return; } if (audioCtx.state === 'suspended') { audioCtx.resume().then(() => { _playSoundInternal(type); }).catch(e => {}); } else if (audioCtx.state === 'running') { _playSoundInternal(type); } }
+
+function showScreen(screenName) { 
+    Object.values(screens).forEach(s => { 
+        if(s && s.classList && s.classList.contains('screen')) s.classList.remove('active'); 
+    });
+    const gameOverElem = document.getElementById('gameOverScreen');
+    if(gameOverElem) gameOverElem.style.display = 'none';
+    const pauseOverlayElem = document.getElementById('pauseOverlay');
+    if(pauseOverlayElem) pauseOverlayElem.style.display = 'none';
+    if(quitConfirmationDialog) quitConfirmationDialog.style.display = 'none';
+
+    if (screenName === 'gameOver') { 
+        if(screens.game) screens.game.classList.add('active'); 
+        if(gameOverElem) gameOverElem.style.display = 'flex';
+    } else if (screens[screenName]) { 
+        screens[screenName].classList.add('active'); 
+    }
+    
+    if (screenName !== 'game' && screenName !== 'gameOver') { 
+        playSound('click');
+    } 
+    if (screenName !== 'game' || (screenName === 'game' && (pauseOverlayElem?.style.display !== 'none' || quitConfirmationDialog?.style.display !== 'none'))) {
+        if(gameCanvas) gameCanvas.style.cursor = 'default';
+    }
+    if (screenName === 'game' && pauseOverlayElem?.style.display === 'none' && quitConfirmationDialog?.style.display === 'none' && !gamePaused) {
+         if(gameCanvas) gameCanvas.style.cursor = 'none';
+    }
+}
+
+function setupEventListeners() {
+    if (!document.getElementById('startGameBtn')) { console.error("DOM not ready for event listeners or button ID mismatch."); return; }
+    document.getElementById('startGameBtn').addEventListener('click', startGame);
+    document.getElementById('settingsBtn').addEventListener('click', () => showScreen('settings'));
+    document.getElementById('highScoresBtn').addEventListener('click', () => { loadHighScores(); showScreen('highScores'); });
+    document.getElementById('howToPlayBtn').addEventListener('click', () => showScreen('howToPlay'));
+
+    volumeSlider.addEventListener('input', (e) => { 
+        masterVolume = parseInt(e.target.value) / 100; 
+        volumeValueDisplay.textContent = e.target.value; 
+    });
+    volumeSlider.addEventListener('mouseup', () => {
+        saveSettings();
+        playSound('click');
+    });
+
+    sensitivitySlider.addEventListener('input', (e) => { 
+        BUCKET_SENSITIVITY = parseInt(e.target.value); 
+        sensitivityValueDisplay.textContent = BUCKET_SENSITIVITY; 
+        updateBucketSpeed(); 
+    });
+    sensitivitySlider.addEventListener('mouseup', () => {
+        saveSettings();
+        playSound('click');
+    });
+
+
+    keybindLeftBtn.addEventListener('click', () => startListeningForKeybind('left'));
+    keybindRightBtn.addEventListener('click', () => startListeningForKeybind('right'));
+    keybindMaxSpeedBtn.addEventListener('click', () => startListeningForKeybind('maxSpeed'));
+    keybindPauseBtn.addEventListener('click', () => startListeningForKeybind('pause'));
+
+    document.getElementById('settingsToHomeBtnIcon').addEventListener('click', () => showScreen('home'));
+    document.getElementById('highScoresToHomeBtnIcon').addEventListener('click', () => showScreen('home'));
+    document.getElementById('howToPlayToHomeBtnIcon').addEventListener('click', () => showScreen('home'));
+
+    document.getElementById('playAgainBtn').addEventListener('click', startGame);
+    if(gameOverQuitBtn) gameOverQuitBtn.addEventListener('click', () => showScreen('home'));
+    
+    if (gameScreenHomeBtn) {
+        gameScreenHomeBtn.addEventListener('click', () => {
+            if (gameRunning) {
+                showQuitConfirmation();
+            } else { 
+                showScreen('home');
+                playSound('click');
+            }
+        });
+    }
+    
+    if (confirmQuitBtn) confirmQuitBtn.addEventListener('click', () => {
+        if (gameRunning) { 
+            gameRunning = false;
+            gamePaused = false; 
+            if (animationFrameId) cancelAnimationFrame(animationFrameId);
+        }
+        showScreen('home'); 
+        gamePausedByConfirmation = false; 
+        playSound('click');
+    });
+
+    if (cancelQuitBtn) cancelQuitBtn.addEventListener('click', hideQuitConfirmation);
+    
+    const pauseOverlayElem = document.getElementById('pauseOverlay');
+    if (pauseOverlayElem) pauseOverlayElem.addEventListener('click', resumeGame);
+    
+    window.addEventListener('keydown', (e) => {
+        const key = e.key.toLowerCase();
+
+        if (listeningForKeybind) {
+            setKeybind(key); 
+            return; 
+        }
+
+        if (key === 'escape') {
+            if (quitConfirmationDialog && quitConfirmationDialog.style.display !== 'none') {
+                hideQuitConfirmation(); 
+            } else if (gameRunning) { 
+                showQuitConfirmation();
+            } else {
+                let currentActiveScreen = '';
+                for (const screenName in screens) {
+                    if (screens[screenName] && screens[screenName].classList.contains('active')) {
+                        currentActiveScreen = screenName;
+                        break;
+                    }
+                }
+                if (currentActiveScreen !== 'home' && currentActiveScreen !== '') {
+                    showScreen('home');
+                } else {
+                    playSound('click'); 
+                }
+            }
+            return; 
+        }
+
+        if (gameRunning) {
+            if (key === keybindPause) {
+                 if (!quitConfirmationDialog || quitConfirmationDialog.style.display === 'none') {
+                    togglePause();
+                 }
+            } else if (!gamePaused) { 
+                if (!quitConfirmationDialog || quitConfirmationDialog.style.display === 'none') {
+                     keysPressed[key] = true;
+                }
+            }
+        }
+    });
+    window.addEventListener('keyup', (e) => {
+        const key = e.key.toLowerCase();
+        if (listeningForKeybind) return;
+        if (quitConfirmationDialog && quitConfirmationDialog.style.display !== 'none') return;
+
+        if (gameRunning && !gamePaused) {
+            keysPressed[key] = false;
+        }
+    });
+    document.addEventListener('mousemove', (e) => { 
+        if (gameRunning && !gamePaused && playerCursor) { 
+            if (quitConfirmationDialog && quitConfirmationDialog.style.display !== 'none') return; 
+            const rect = gameCanvas.getBoundingClientRect(); 
+            playerCursor.x = e.clientX - rect.left; 
+            playerCursor.y = e.clientY - rect.top; 
+            addColorWheelParticle(playerCursor.x, playerCursor.y); 
+        } 
+    });
+}
+
+function loadSettings() {  
+    const savedVolume = localStorage.getItem('masterVolume');
+    if (savedVolume !== null) masterVolume = parseFloat(savedVolume);
+    if(volumeSlider) volumeSlider.value = masterVolume * 100;
+    if(volumeValueDisplay) volumeValueDisplay.textContent = Math.round(masterVolume * 100);
+
+    const savedSensitivity = localStorage.getItem('bucketSensitivity');  
+    if (savedSensitivity) BUCKET_SENSITIVITY = parseInt(savedSensitivity);   
+    if(sensitivitySlider) sensitivitySlider.value = BUCKET_SENSITIVITY;   
+    if(sensitivityValueDisplay) sensitivityValueDisplay.textContent = BUCKET_SENSITIVITY;  
+    
+    const savedKeyLeft = localStorage.getItem('keybindLeft');  if (savedKeyLeft) keybindLeft = savedKeyLeft;   if(keybindLeftBtn) keybindLeftBtn.textContent = keybindLeft.toUpperCase();  
+    const savedKeyRight = localStorage.getItem('keybindRight');  if (savedKeyRight) keybindRight = savedKeyRight;   if(keybindRightBtn) keybindRightBtn.textContent = keybindRight.toUpperCase();  
+    const savedKeyMaxSpeed = localStorage.getItem('keybindMaxSpeed');  if (savedKeyMaxSpeed) keybindMaxSpeed = savedKeyMaxSpeed;  if(keybindMaxSpeedBtn) keybindMaxSpeedBtn.textContent = keybindMaxSpeed.toUpperCase(); 
+    const savedKeyPause = localStorage.getItem('keybindPause');  if (savedKeyPause) keybindPause = savedKeyPause; if(keybindPauseBtn) keybindPauseBtn.textContent = keybindPause.toUpperCase();
+}
+function saveSettings() {  
+    localStorage.setItem('masterVolume', masterVolume);
+    localStorage.setItem('bucketSensitivity', BUCKET_SENSITIVITY);  
+    localStorage.setItem('keybindLeft', keybindLeft);  
+    localStorage.setItem('keybindRight', keybindRight);  
+    localStorage.setItem('keybindMaxSpeed', keybindMaxSpeed); 
+    localStorage.setItem('keybindPause', keybindPause); 
+}
+function startListeningForKeybind(type) {  
+    playSound('click');  
+    listeningForKeybind = type;  
+    let btnToUpdate;  
+    if (type === 'left') btnToUpdate = keybindLeftBtn;  
+    else if (type === 'right') btnToUpdate = keybindRightBtn;  
+    else if (type === 'maxSpeed') btnToUpdate = keybindMaxSpeedBtn; 
+    else if (type === 'pause') btnToUpdate = keybindPauseBtn;  
+    
+    if(btnToUpdate) btnToUpdate.textContent = 'Press key...';  
+    
+    [keybindLeftBtn, keybindRightBtn, keybindMaxSpeedBtn, keybindPauseBtn].forEach(btn => {  
+        if (btn !== btnToUpdate && btn) btn.disabled = true;  
+        if (btn) btn.style.cursor = btn.disabled ? 'not-allowed' : 'pointer';
+    });
+    if(volumeSlider) { volumeSlider.disabled = true; volumeSlider.style.cursor = 'not-allowed'; }
+    if(sensitivitySlider) { sensitivitySlider.disabled = true; sensitivitySlider.style.cursor = 'not-allowed'; }
+}
+function setKeybind(key) {  
+    if (!listeningForKeybind) return; 
+    if (key.toLowerCase() === 'escape') { 
+        playSound('click'); 
+    } else { 
+        if (listeningForKeybind === 'left') keybindLeft = key.toLowerCase(); 
+        else if (listeningForKeybind === 'right') keybindRight = key.toLowerCase(); 
+        else if (listeningForKeybind === 'maxSpeed') keybindMaxSpeed = key.toLowerCase(); 
+        else if (listeningForKeybind === 'pause') keybindPause = key.toLowerCase(); 
+        saveSettings(); 
+        playSound('click');
+    } 
+    if(keybindLeftBtn) keybindLeftBtn.textContent = keybindLeft.toUpperCase();  
+    if(keybindRightBtn) keybindRightBtn.textContent = keybindRight.toUpperCase();  
+    if(keybindMaxSpeedBtn) keybindMaxSpeedBtn.textContent = keybindMaxSpeed.toUpperCase(); 
+    if(keybindPauseBtn) keybindPauseBtn.textContent = keybindPause.toUpperCase(); 
+    
+    listeningForKeybind = null;  
+    [keybindLeftBtn, keybindRightBtn, keybindMaxSpeedBtn, keybindPauseBtn].forEach(btn => { 
+        if(btn) {
+            btn.disabled = false;
+            btn.style.cursor = 'pointer';
+        }
+    });
+    if(volumeSlider) { volumeSlider.disabled = false; volumeSlider.style.cursor = 'pointer'; }
+    if(sensitivitySlider) { sensitivitySlider.disabled = false; sensitivitySlider.style.cursor = 'pointer'; }
+}
 function getHighScores() { const scoresJSON = localStorage.getItem('highScores'); return scoresJSON ? JSON.parse(scoresJSON) : []; }
 function saveHighScore(newScore, timeStr) { let scores = getHighScores(); let isNewHigh = scores.length === 0 || newScore > (scores[0]?.score || 0); scores.push({ score: newScore, time: timeStr, date: new Date().toLocaleDateString() }); scores.sort((a, b) => b.score - a.score); scores = scores.slice(0, 10);  localStorage.setItem('highScores', JSON.stringify(scores)); return isNewHigh;}
 function loadHighScores() { const scores = getHighScores(); if(highScoresListElem) highScoresListElem.innerHTML = '';  if (scores.length === 0) { if(highScoresListElem) highScoresListElem.innerHTML = '<li>No high scores yet!</li>';}  else { scores.forEach(entry => { const li = document.createElement('li'); li.textContent = `${entry.score} points (${entry.time}) - ${entry.date}`; if(highScoresListElem) highScoresListElem.appendChild(li); });}}
 
-// --- Color Wheel Particle System ---
-// (Copied from your code (5).html)
+// --- Particle Systems ---
 function addColorWheelParticle(x,y) { if (Math.random() < 0.5) return;  colorWheelParticles.push({ x: x + (Math.random() - 0.5) * PLAYER_CURSOR_OUTER_RADIUS * 0.5, y: y + (Math.random() - 0.5) * PLAYER_CURSOR_OUTER_RADIUS * 0.5, radius: Math.random() * 2 + 1, alpha: 1, color: `rgba(220, 220, 255, ${0.3 + Math.random() * 0.3})`, vx: (Math.random() - 0.5) * 0.5, vy: (Math.random() - 0.5) * 0.5 });}
 function updateColorWheelParticles(deltaTimeS) { for (let i = colorWheelParticles.length - 1; i >= 0; i--) { const p = colorWheelParticles[i]; p.x += p.vx; p.y += p.vy; p.alpha -= deltaTimeS * 2;  if (p.alpha <= 0) { colorWheelParticles.splice(i, 1); }}}
 function drawColorWheelParticles(ctx) { colorWheelParticles.forEach(p => { ctx.beginPath(); ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2); ctx.fillStyle = p.color.replace(/[^,]+(?=\))/, p.alpha.toFixed(2));  ctx.fill(); });}
+function addPowerupGlowParticle(x, y) { if (Math.random() < 0.6) return; powerupGlowParticles.push({ x: x, y: y, radius: Math.random() * 1.5 + 0.5, alpha: 0.8, color: `rgba(255, 235, 59, ${0.5 + Math.random() * 0.3})`, vx: (Math.random() - 0.5) * 20, vy: (Math.random() - 0.5) * 20, life: 0.5 }); }
+function updatePowerupGlowParticles(deltaTimeS) { for (let i = powerupGlowParticles.length - 1; i >= 0; i--) { const p = powerupGlowParticles[i]; p.x += p.vx * deltaTimeS; p.y += p.vy * deltaTimeS; p.alpha -= deltaTimeS / p.life; if (p.alpha <= 0) { powerupGlowParticles.splice(i, 1); } } }
+function drawPowerupGlowParticles(ctx) { powerupGlowParticles.forEach(p => { ctx.beginPath(); ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2); ctx.fillStyle = p.color.replace(/[^,]+(?=\))/, p.alpha.toFixed(2)); ctx.fill(); }); }
+
+// --- Atmospheric Particles (Dynamic, on gameCtx) ---
+function initAtmosphericParticles() {
+    atmosphericParticles.length = 0;
+    const minRadius = 0.5;
+    const maxRadius = 2.0;
+    const speedMultiplierAtMinRadius = 2.0; 
+    const speedMultiplierAtMaxRadius = 0.5; 
+
+    for (let i = 0; i < NUM_ATMOSPHERIC_PARTICLES; i++) {
+        const radius = Math.random() * (maxRadius - minRadius) + minRadius; 
+        const normalizedRadius = (radius - minRadius) / (maxRadius - minRadius);
+        const speedMultiplier = speedMultiplierAtMinRadius + (speedMultiplierAtMaxRadius - speedMultiplierAtMinRadius) * normalizedRadius;
+
+        atmosphericParticles.push({
+            x: Math.random() * gameWidth,
+            y: Math.random() * gameHeight,
+            radius: radius,
+            alpha: Math.random() * 0.3 + 0.1, 
+            color: `rgba(200, 220, 255, 1)`,   
+            vx: (Math.random() - 0.5) * 8,     
+            vy: (Math.random() - 0.5) * 8,      
+            speedMultiplier: speedMultiplier    
+        });
+    }
+}
+
+function updateAtmosphericParticles(deltaTimeS) { 
+ atmosphericParticles.forEach(p => {
+     p.vx += (Math.random() - 0.5) * ATMOSPHERIC_PARTICLE_ACCEL_STRENGTH * deltaTimeS;
+     p.vy += (Math.random() - 0.5) * ATMOSPHERIC_PARTICLE_ACCEL_STRENGTH * deltaTimeS;
+
+     const individualMaxSpeedComponent = ATMOSPHERIC_PARTICLE_MAX_SPEED_COMPONENT * p.speedMultiplier;
+
+     p.vx = Math.max(-individualMaxSpeedComponent, Math.min(individualMaxSpeedComponent, p.vx));
+     p.vy = Math.max(-individualMaxSpeedComponent, Math.min(individualMaxSpeedComponent, p.vy));
+
+     p.x += p.vx * deltaTimeS;
+     p.y += p.vy * deltaTimeS;
+
+     if (p.x < -p.radius) p.x = gameWidth + p.radius;
+     if (p.x > gameWidth + p.radius) p.x = -p.radius;
+     if (p.y < -p.radius) p.y = gameHeight + p.radius;
+     if (p.y > gameHeight + p.radius) p.y = -p.radius;
+ });
+}
+
+function drawAtmosphericParticles(ctx) { 
+    atmosphericParticles.forEach(p => {
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+        ctx.fillStyle = p.color.replace(/[^,]+(?=\))/, p.alpha.toFixed(2)); 
+        ctx.fill();
+    });
+}
+
+// --- Texture Particles (Static Background, on atmosphericCtx) ---
+function initTextureParticles() { 
+    textureParticles.length = 0;
+    for (let i = 0; i < NUM_TEXTURE_PARTICLES; i++) {
+        textureParticles.push({
+            x: Math.random() * gameWidth,
+            y: Math.random() * gameHeight,
+            radius: Math.random() * 0.8 + 0.2, 
+            alpha: Math.random() * 0.04 + 0.01 
+        });
+    }
+}
+function drawTextureParticles(ctx) { 
+    textureParticles.forEach(p => {
+        ctx.fillStyle = `rgba(210, 210, 225, ${p.alpha.toFixed(3)})`; 
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+        ctx.fill();
+    });
+}
+
 
 // --- Powerup Logic ---
-// (Copied from your code (5).html)
-function activatePowerup(type) { const now = performance.now(); playSound('powerupCollect'); let powerupText = ""; switch(type) { case 'slowFall': activePowerups.slowFall.active = true; activePowerups.slowFall.endTime = now + POWERUP_DURATION_MS; activePowerups.slowFall.originalValue = 1.0; powerupText = "Gravity Slowed"; break; case 'wideBucket': activePowerups.wideBucket.active = true; activePowerups.wideBucket.endTime = now + POWERUP_DURATION_MS; currentBucketBaseWidthRatio = BUCKET_BASE_WIDTH_RATIO_WIDE; if(bucket) bucket.baseWidth = gameWidth * currentBucketBaseWidthRatio; powerupText = "Enlarged Bucket"; break; case 'oneColor': activePowerups.oneColor.active = true; activePowerups.oneColor.endTime = now + POWERUP_DURATION_MS; const randColorIdx = Math.floor(Math.random() * BALL_COLOR_NAMES.length); activePowerups.oneColor.color = BALL_COLOR_NAMES[randColorIdx]; powerupText = "One Color"; break; case 'doublePoints': activePowerups.doublePoints.active = true; activePowerups.doublePoints.endTime = now + POWERUP_DURATION_MS; powerupText = "Double Points"; break; case 'extraLives': lives += 3; powerupText = "+3 Lives!"; break;} if (powerupText) { displayPowerupText(powerupText); } checkPowerups(); }
-function getRandomPowerupType() { const types = ['slowFall', 'wideBucket', 'oneColor', 'doublePoints', 'extraLives']; return types[Math.floor(Math.random() * types.length)];}
-function checkPowerups() { const now = performance.now(); let changed = false; for (const type in activePowerups) { const pu = activePowerups[type]; if (pu.active && pu.endTime && now >= pu.endTime) { pu.active = false; changed = true; if (type === 'wideBucket') { currentBucketBaseWidthRatio = BUCKET_BASE_WIDTH_RATIO_NORMAL; if (bucket) bucket.baseWidth = gameWidth * currentBucketBaseWidthRatio; } if (type === 'slowFall') pu.originalValue = 1.0; if (type === 'oneColor') pu.color = null;}} updatePowerupIcons(); return changed;}
+function activatePowerup(type) { 
+    const now = performance.now(); 
+    playSound('powerupCollect'); 
+    let powerupText = ""; 
+    switch(type) { 
+        case 'slowFall': 
+            activePowerups.slowFall.active = true; 
+            activePowerups.slowFall.endTime = now + POWERUP_DURATION_MS; 
+            powerupText = "Slow Fall"; 
+            balls.forEach(ball => { if (ball.originalVy) { ball.vy = ball.originalVy * SLOW_FALL_SPEED_MULTIPLIER;} }); 
+            currentBallSwaySpeed = ORIGINAL_BALL_SWAY_SPEED * SLOW_FALL_SPEED_MULTIPLIER; 
+            break; 
+        case 'wideBucket': 
+            activePowerups.wideBucket.active = true; 
+            activePowerups.wideBucket.endTime = now + POWERUP_DURATION_MS; 
+            currentBucketBaseWidthRatio = BUCKET_BASE_WIDTH_RATIO_WIDE; 
+            if(bucket) bucket.baseWidth = gameWidth * currentBucketBaseWidthRatio; 
+            powerupText = "Wide Bucket"; 
+            break; 
+        case 'oneColor': 
+            activePowerups.oneColor.active = true; 
+            activePowerups.oneColor.endTime = now + POWERUP_DURATION_MS; 
+            const randColorIdx = Math.floor(Math.random() * BALL_COLOR_NAMES.length); 
+            activePowerups.oneColor.color = BALL_COLOR_NAMES[randColorIdx]; 
+            powerupText = "One Color"; 
+            break; 
+        case 'doublePoints': 
+            activePowerups.doublePoints.active = true; 
+            activePowerups.doublePoints.endTime = now + POWERUP_DURATION_MS; 
+            powerupText = "Double Points"; 
+            break; 
+        case 'extraLives': 
+            lives += 3; 
+            powerupText = "+3 Lives"; 
+            break;
+        case 'whiteBallMagnet':
+            activePowerups.whiteBallMagnet.active = true;
+            activePowerups.whiteBallMagnet.endTime = now + POWERUP_DURATION_MS;
+            powerupText = "Magnet";
+            break;
+        case 'invincibility':
+            activePowerups.invincibility.active = true;
+            activePowerups.invincibility.endTime = now + POWERUP_DURATION_MS;
+            powerupText = "Invincibility";
+            break;
+    } 
+    if (powerupText) { displayPowerupText(powerupText); } 
+    updatePowerupIcons(); 
+}
+function getRandomPowerupType() { 
+    const types = ['slowFall', 'wideBucket', 'oneColor', 'doublePoints', 'extraLives', 'whiteBallMagnet', 'invincibility'];
+    return types[Math.floor(Math.random() * types.length)];
+}
+function checkPowerups() { const now = performance.now(); let changed = false; for (const type in activePowerups) { const pu = activePowerups[type]; if (pu.active && pu.endTime && now >= pu.endTime) { pu.active = false; changed = true;  if (type === 'wideBucket') { currentBucketBaseWidthRatio = BUCKET_BASE_WIDTH_RATIO_NORMAL; if (bucket) bucket.baseWidth = gameWidth * currentBucketBaseWidthRatio; } if (type === 'slowFall') { balls.forEach(ball => { if (ball.originalVy) { ball.vy = ball.originalVy;} }); currentBallSwaySpeed = ORIGINAL_BALL_SWAY_SPEED; } if (type === 'oneColor') { pu.color = null; }}} if (changed) { updatePowerupIcons(); }}
 function updatePowerupIcons() { const now = performance.now(); for (const type in powerupIconElems) { const iconElem = powerupIconElems[type]; if (!iconElem) continue;  const pu = activePowerups[type]; if (pu && pu.active) { iconElem.classList.add('active'); if (pu.endTime && (pu.endTime - now) <= POWERUP_FLASH_THRESHOLD_MS) { iconElem.classList.add('flashing'); }  else { iconElem.classList.remove('flashing'); }} else { iconElem.classList.remove('active', 'flashing'); }}}
 function displayPowerupText(text) { const textElem = document.createElement('div'); textElem.className = 'powerup-text-display'; textElem.textContent = text; if (screens.game) screens.game.appendChild(textElem);  setTimeout(() => { if (textElem.parentNode) { textElem.parentNode.removeChild(textElem); } }, 1000); }
 
 // --- Game Logic ---
-// (Copied from your code (5).html, with MODIFIED createDropper for synchronization)
 function startGame() {
-    if (!initAudio()) { console.warn("Audio could not be initialized in startGame.") }
-    if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
-
-    for (const key in keysPressed) { delete keysPressed[key]; } // Clear pressed keys
-
-    score = 0; lives = 3; elapsedGameTimeMs = 0; 
-    gameRunning = true; gamePaused = false; balls.length = 0; colorWheelParticles.length = 0;
-    if(newHighScoreTextElem) newHighScoreTextElem.style.display = 'none'; 
-
-    for (const type in activePowerups) {
-        activePowerups[type].active = false;
-        activePowerups[type].endTime = 0;
-        if (type === 'oneColor') activePowerups.oneColor.color = null;
-        if (type === 'slowFall' && balls.length > 0) { 
-            balls.forEach(ball => { if (ball.originalVy) ball.vy = ball.originalVy; delete ball.originalVy; });
-        }
-    }
-    currentBucketBaseWidthRatio = BUCKET_BASE_WIDTH_RATIO_NORMAL;
-    updatePowerupIcons();
-    updateBucketSpeed(); 
+    playSound('click');
+    if (!audioCtx) { if (!initAudio()) { console.warn("Audio could not be initialized in startGame."); } }
+    if (audioCtx && audioCtx.state === 'suspended') { audioCtx.resume().catch(e => console.warn("AudioContext resume failed in startGame:", e)); }
     
-    const createDropper = (startsMovingRight) => ({
-        x: gameWidth / 2 - DROPPER_WIDTH_BOTTOM / 2,
-        y: 0,
-        width: DROPPER_WIDTH_BOTTOM,
-        height: DROPPER_HEIGHT,
-        topWidth: DROPPER_WIDTH_BOTTOM * DROPPER_TOP_WIDTH_RATIO,
-        speed: (gameWidth - DROPPER_WIDTH_BOTTOM) / INITIAL_DROPPER_TIME_PER_SCREEN_S,
-        direction: startsMovingRight ? 1 : -1,
-        currentDropIntervalMs: INITIAL_BALL_DROP_INTERVAL_MS, 
-        timeSinceLastDrop: 0, // MODIFIED: Set to 0 for synchronization
-        isMaxSpeedOverride: false 
-    });
+    if (gameCanvas) gameCanvas.style.cursor = 'none'; 
 
-    dropper1 = createDropper(true); 
-    dropper2 = createDropper(false); 
-
+    for (const key in keysPressed) { delete keysPressed[key]; } 
+    score = 0; lives = 3; elapsedGameTimeMs = 0; gameRunning = true; gamePaused = false; gamePausedByConfirmation = false; balls.length = 0; colorWheelParticles.length = 0; powerupGlowParticles.length = 0;
+    if(newHighScoreTextElem) newHighScoreTextElem.style.display = 'none';
+    currentBallSwaySpeed = ORIGINAL_BALL_SWAY_SPEED;
+    for (const type in activePowerups) { activePowerups[type].active = false; activePowerups[type].endTime = 0; if (type === 'oneColor') activePowerups.oneColor.color = null; }
+    currentBucketBaseWidthRatio = BUCKET_BASE_WIDTH_RATIO_NORMAL; updatePowerupIcons(); updateBucketSpeed();
+    const createDropper = (startsMovingRight) => ({ x: gameWidth / 2 - DROPPER_WIDTH_BOTTOM / 2, y: 0, width: DROPPER_WIDTH_BOTTOM, height: DROPPER_HEIGHT, topWidth: DROPPER_WIDTH_BOTTOM * DROPPER_TOP_WIDTH_RATIO, speed: (gameWidth - DROPPER_WIDTH_BOTTOM) / INITIAL_DROPPER_TIME_PER_SCREEN_S, direction: startsMovingRight ? 1 : -1, currentDropIntervalMs: INITIAL_BALL_DROP_INTERVAL_MS, timeSinceLastDrop: 0,  isMaxSpeedOverride: false  });
+    dropper1 = createDropper(true); dropper2 = createDropper(false);
+    const initialBucketBaseWidth = gameWidth * currentBucketBaseWidthRatio;
     bucket = {
-        baseWidth: gameWidth * currentBucketBaseWidthRatio,
+        baseWidth: initialBucketBaseWidth, 
         height: BUCKET_HEIGHT,
-        x: gameWidth / 2 - (gameWidth * currentBucketBaseWidthRatio) / 2, 
-        y: gameHeight - BUCKET_HEIGHT,
+        y: gameHeight - BUCKET_HEIGHT - (BUCKET_LINE_WIDTH / 2),
+        x: (gameWidth / 2) - (initialBucketBaseWidth / 2), 
         get sideRise() { return this.height; },
         get sideRun() { return this.height / Math.tan(BUCKET_SIDE_ANGLE); },
-        get P1() { return { x: this.x - this.sideRun, y: this.y }; }, 
-        get P2() { return { x: this.x, y: this.y + this.height }; }, 
-        get P3() { return { x: this.x + this.baseWidth, y: this.y + this.height }; }, 
+        get P1() { return { x: this.x - this.sideRun, y: this.y }; },
+        get P2() { return { x: this.x, y: this.y + this.height }; },
+        get P3() { return { x: this.x + this.baseWidth, y: this.y + this.height }; },
         get P4() { return { x: this.x + this.baseWidth + this.sideRun, y: this.y }; }
     };
     playerCursor = { x: gameWidth / 2, y: gameHeight / 2, outerRadius: PLAYER_CURSOR_OUTER_RADIUS, ringThickness: PLAYER_CURSOR_RING_THICKNESS };
-
-    updateUI();
-    showScreen('game');
-    lastTime = performance.now();
-    timePausedStarted = 0; 
+    updateUI(); showScreen('game'); lastTime = performance.now(); timePausedStarted = 0;
     if (animationFrameId) cancelAnimationFrame(animationFrameId);
     animationFrameId = requestAnimationFrame(gameLoop);
 }
-function endGame() { 
-    for (const key in keysPressed) { delete keysPressed[key]; } // Clear pressed keys
-    gameRunning = false; gamePaused = false;
-    if (animationFrameId) cancelAnimationFrame(animationFrameId);
-    if(finalScoreDisplay) finalScoreDisplay.textContent = score;
-    if(finalTimeDisplay) finalTimeDisplay.textContent = formatTime(elapsedGameTimeMs);
-    const isNewHigh = saveHighScore(score, formatTime(elapsedGameTimeMs));
-    if (isNewHigh && newHighScoreTextElem) { newHighScoreTextElem.style.display = 'block';
-    } else if (newHighScoreTextElem) { newHighScoreTextElem.style.display = 'none'; }
-    showScreen('gameOver'); playSound('loseLife'); 
+
+function endGame() {  
+    if (gameCanvas) gameCanvas.style.cursor = 'default'; 
+
+    for (const key in keysPressed) { delete keysPressed[key]; }  
+    gameRunning = false; gamePaused = false; gamePausedByConfirmation = false;
+    if (animationFrameId) cancelAnimationFrame(animationFrameId); 
+    if(finalScoreDisplay) finalScoreDisplay.textContent = score; 
+    if(finalTimeDisplay) finalTimeDisplay.textContent = formatTime(elapsedGameTimeMs); 
+    const isNewHigh = saveHighScore(score, formatTime(elapsedGameTimeMs)); 
+    if (isNewHigh && newHighScoreTextElem) { newHighScoreTextElem.style.display = 'block'; } 
+    else if (newHighScoreTextElem) { newHighScoreTextElem.style.display = 'none'; } 
+    showScreen('gameOver'); 
+    playSound('loseLife'); 
 }
-function updateUI() {  if(scoreDisplay) scoreDisplay.textContent = score; if(timeDisplay) timeDisplay.textContent = formatTime(elapsedGameTimeMs); if(livesDisplay) livesDisplay.textContent = '❤'.repeat(Math.max(0,lives)) + '♡'.repeat(Math.max(0,3-lives));}
+function updateUI() {  
+    if(scoreDisplay) scoreDisplay.textContent = score; 
+    if(timeDisplay) timeDisplay.textContent = formatTime(elapsedGameTimeMs); 
+    if(livesDisplay) livesDisplay.textContent = '❤'.repeat(Math.max(0,lives));
+}
 function formatTime(ms) { let totalSeconds = Math.floor(ms / 1000); let minutes = Math.floor(totalSeconds / 60); let seconds = totalSeconds % 60; let tenths = Math.floor((ms % 1000) / 100); return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}.${tenths}`; }
 function updateGameParameters(deltaTimeS) { elapsedGameTimeMs += deltaTimeS * 1000; const progress = Math.min(1, elapsedGameTimeMs / MAX_SCALING_TIME_MS); const updateDropperParams = (drpr) => { if (!drpr) return; if (drpr.isMaxSpeedOverride) { drpr.speed = (gameWidth - drpr.width) / FINAL_DROPPER_TIME_PER_SCREEN_S; drpr.currentDropIntervalMs = FINAL_BALL_DROP_INTERVAL_MS;} else { const dropperTimePerScreenS = INITIAL_DROPPER_TIME_PER_SCREEN_S - (INITIAL_DROPPER_TIME_PER_SCREEN_S - FINAL_DROPPER_TIME_PER_SCREEN_S) * progress; drpr.speed = (gameWidth - drpr.width) / dropperTimePerScreenS; drpr.currentDropIntervalMs = INITIAL_BALL_DROP_INTERVAL_MS - (INITIAL_BALL_DROP_INTERVAL_MS - FINAL_BALL_DROP_INTERVAL_MS) * progress;}}; updateDropperParams(dropper1); updateDropperParams(dropper2); checkPowerups(); }
 function updateBucketSpeed() { const timeToTraverse = MAX_BUCKET_TRAVERSE_TIME_S - ((BUCKET_SENSITIVITY - 1) / 9) * (MAX_BUCKET_TRAVERSE_TIME_S - MIN_BUCKET_TRAVERSE_TIME_S); currentBucketSpeedPPS = gameWidth / timeToTraverse; }
 
 
 // --- Entity Update and Draw ---
-// (Copied from your code (5).html, with the ball wall bounce logic from my previous correct implementation re-added)
-function updateSingleDropper(drpr, deltaTimeS, isPrimaryDropper) {
-    if (!drpr) return;
-    drpr.x += drpr.speed * drpr.direction * deltaTimeS;
-    if (drpr.x + drpr.width > gameWidth) { drpr.x = gameWidth - drpr.width; drpr.direction *= -1; }
-    if (drpr.x < 0) { drpr.x = 0; drpr.direction *= -1; }
-
-    drpr.timeSinceLastDrop += deltaTimeS * 1000; 
-    if (drpr.timeSinceLastDrop >= drpr.currentDropIntervalMs) { 
-        drpr.timeSinceLastDrop = 0;
-        let ballTypeRand = Math.random(); let chosenColor = null; let chosenColorName = null; let isPowerup = false;
-        if (isPrimaryDropper) { 
-            if (ballTypeRand < 0.01) { isPowerup = true; chosenColor = POWERUP_BALL_COLOR; chosenColorName = 'powerup';} 
-            else { 
-                let colorRand = Math.random();
-                if (activePowerups.oneColor.active && activePowerups.oneColor.color) { chosenColorName = activePowerups.oneColor.color; chosenColor = BALL_COLORS[BALL_COLOR_NAMES.indexOf(chosenColorName)];} 
-                else {
-                    if (colorRand < 0.33) { chosenColor = BALL_COLORS[0]; chosenColorName = BALL_COLOR_NAMES[0];}
-                    else if (colorRand < 0.66) { chosenColor = BALL_COLORS[1]; chosenColorName = BALL_COLOR_NAMES[1];}
-                    else { chosenColor = BALL_COLORS[2]; chosenColorName = BALL_COLOR_NAMES[2];}
-                }
-            }
-        } else { 
-            if (ballTypeRand < 0.01) { isPowerup = true; chosenColor = POWERUP_BALL_COLOR; chosenColorName = 'powerup';} 
-            else { chosenColor = WHITE_BALL_COLOR; chosenColorName = 'white';}
-        }
-        const fallTimeS = MIN_BALL_FALL_TIME_S + Math.random() * (MAX_BALL_FALL_TIME_S - MIN_BALL_FALL_TIME_S);
-        let fallSpeedPPS = gameHeight / fallTimeS;
-        let originalVyForBall = fallSpeedPPS; 
-        if (activePowerups.slowFall.active) { fallSpeedPPS *= 0.65; } 
-        const sizeMultiplier = 0.6 + Math.random() * (1.4 - 0.6); 
-        const currentBallRadius = BALL_RADIUS_BASE * sizeMultiplier;
-        balls.push({ x: drpr.x + drpr.width / 2, y: drpr.y + drpr.height, radius: currentBallRadius, 
-                     color: chosenColor, colorName: chosenColorName, 
-                     vy: fallSpeedPPS, originalVy: originalVyForBall, 
-                     isPowerup: isPowerup, swayOffset: 0, swayTime: Math.random() * Math.PI * 2,
-                     vx_sway_direction: (Math.random() < 0.5 ? -1 : 1) 
-                    });
-        playSound('drop');
+function darkenColor(hex, percent) {
+    hex = hex.replace(/^#/, '');
+    if (hex.length === 3) {
+        hex = hex[0] + hex[0] + hex[1] + hex[1] + hex[2] + hex[2];
     }
+    let r = parseInt(hex.substring(0, 2), 16);
+    let g = parseInt(hex.substring(2, 4), 16);
+    let b = parseInt(hex.substring(4, 6), 16);
+    r = Math.max(0, Math.floor(r * (1 - percent / 100)));
+    g = Math.max(0, Math.floor(g * (1 - percent / 100)));
+    b = Math.max(0, Math.floor(b * (1 - percent / 100)));
+    return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
 }
+function rgbToHsl(r, g, b) {
+  r /= 255, g /= 255, b /= 255;
+  let max = Math.max(r, g, b), min = Math.min(r, g, b);
+  let h, s, l = (max + min) / 2;
+
+  if (max == min) {
+    h = s = 0; 
+  } else {
+    let d = max - min;
+    s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+    switch (max) {
+      case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+      case g: h = (b - r) / d + 2; break;
+      case b: h = (r - g) / d + 4; break;
+    }
+    h /= 6;
+  }
+  return [h, s, l];
+}
+function hslToRgb(h, s, l_param) { 
+  let r_val, g_val, b_val; 
+
+  if (s == 0) {
+    r_val = g_val = b_val = l_param; 
+  } else {
+    function hue2rgb(p, q, t) {
+      if (t < 0) t += 1;
+      if (t > 1) t -= 1;
+      if (t < 1/6) return p + (q - p) * 6 * t;
+      if (t < 1/2) return q;
+      if (t < 2/3) return p + (q - p) * (2/3 - t) * 6;
+      return p;
+    }
+    let q = l_param < 0.5 ? l_param * (1 + s) : l_param + s - l_param * s;
+    let p = 2 * l_param - q;
+    r_val = hue2rgb(p, q, h + 1/3);
+    g_val = hue2rgb(p, q, h);
+    b_val = hue2rgb(p, q, h - 1/3);
+  }
+  return [Math.round(r_val * 255), Math.round(g_val * 255), Math.round(b_val * 255)];
+}
+function rgbArrayToHex(rgbArray) {
+    return "#" + rgbArray.map(c => {
+        const hex = c.toString(16);
+        return hex.length == 1 ? "0" + hex : hex;
+    }).join('');
+}
+function updateSingleDropper(drpr, deltaTimeS, isPrimaryDropper) { if (!drpr) return; drpr.x += drpr.speed * drpr.direction * deltaTimeS; if (drpr.x + drpr.width > gameWidth) { drpr.x = gameWidth - drpr.width; drpr.direction *= -1; } if (drpr.x < 0) { drpr.x = 0; drpr.direction *= -1; } drpr.timeSinceLastDrop += deltaTimeS * 1000;  if (drpr.timeSinceLastDrop >= drpr.currentDropIntervalMs) {  drpr.timeSinceLastDrop = 0; let ballTypeRand = Math.random(); let chosenColorHex = null; let chosenColorName = null; let isPowerup = false; if (isPrimaryDropper) {  if (ballTypeRand < 0.025) { isPowerup = true; chosenColorHex = POWERUP_BALL_COLOR_HEX; chosenColorName = 'powerup';}  else {  let colorRand = Math.random(); if (activePowerups.oneColor.active && activePowerups.oneColor.color) { chosenColorName = activePowerups.oneColor.color; chosenColorHex = BALL_COLORS[BALL_COLOR_NAMES.indexOf(chosenColorName)];}  else { if (colorRand < 0.33) { chosenColorHex = BALL_COLORS[0]; chosenColorName = BALL_COLOR_NAMES[0];} else if (colorRand < 0.66) { chosenColorHex = BALL_COLORS[1]; chosenColorName = BALL_COLOR_NAMES[1];} else { chosenColorHex = BALL_COLORS[2]; chosenColorName = BALL_COLOR_NAMES[2];} } } } else {  if (ballTypeRand < 0.025) { isPowerup = true; chosenColorHex = POWERUP_BALL_COLOR_HEX; chosenColorName = 'powerup';}  else { chosenColorHex = WHITE_BALL_COLOR_HEX; chosenColorName = 'white';} } const fallTimeS = MIN_BALL_FALL_TIME_S + Math.random() * (MAX_BALL_FALL_TIME_S - MIN_BALL_FALL_TIME_S); let currentVy = gameHeight / fallTimeS; const originalVyForBall = currentVy;  if (activePowerups.slowFall.active) { currentVy = originalVyForBall * SLOW_FALL_SPEED_MULTIPLIER; }  const sizeMultiplier = MIN_BALL_SIZE_MULTIPLIER + Math.random() * (MAX_BALL_SIZE_MULTIPLIER - MIN_BALL_SIZE_MULTIPLIER);  const currentBallRadius = BALL_RADIUS_BASE * sizeMultiplier; balls.push({ x: drpr.x + drpr.width / 2, y: drpr.y + drpr.height, radius: currentBallRadius,  colorHex: chosenColorHex, colorName: chosenColorName,  vy: currentVy, originalVy: originalVyForBall,  isPowerup: isPowerup, swayOffset: 0, swayTime: Math.random() * Math.PI * 2, vx_sway_direction: (Math.random() < 0.5 ? -1 : 1) }); playSound('drop'); }}
 function drawSingleDropper(ctx, drpr) { if(drpr){ctx.fillStyle = DROPPER_COLOR; ctx.beginPath(); const topOffset = (drpr.width - drpr.topWidth) / 2; ctx.moveTo(drpr.x + topOffset, drpr.y); ctx.lineTo(drpr.x + drpr.width - topOffset, drpr.y); ctx.lineTo(drpr.x + drpr.width, drpr.y + drpr.height); ctx.lineTo(drpr.x, drpr.y + drpr.height); ctx.closePath(); ctx.fill();} else console.warn("drawSingleDropper: drpr undefined");}
 function lineCircleCollision(p1, p2, circleCenter, radius) { let dp = { x: p2.x - p1.x, y: p2.y - p1.y }; let p1ToCircle = { x: circleCenter.x - p1.x, y: circleCenter.y - p1.y }; let t = (p1ToCircle.x * dp.x + p1ToCircle.y * dp.y) / (dp.x * dp.x + dp.y * dp.y); t = Math.max(0, Math.min(1, t)); let closestPoint = { x: p1.x + dp.x * t, y: p1.y + dp.y * t }; let distSq = (circleCenter.x - closestPoint.x)**2 + (circleCenter.y - closestPoint.y)**2; return distSq <= radius**2;}
+
 function updateBalls(deltaTimeS) {
     for (let i = balls.length - 1; i >= 0; i--) {
         const ball = balls[i];
-        ball.y += ball.vy * deltaTimeS;
-        ball.swayTime += BALL_SWAY_SPEED * deltaTimeS * ball.vx_sway_direction; 
+        
+        ball.y += ball.vy * deltaTimeS; 
+        ball.swayTime += currentBallSwaySpeed * deltaTimeS * ball.vx_sway_direction; 
         ball.swayOffset = Math.sin(ball.swayTime) * gameWidth * BALL_SWAY_AMPLITUDE_RATIO;
+        
         let displayX = ball.x + ball.swayOffset;
-        if (displayX - ball.radius < 0) { displayX = ball.radius; ball.x = displayX - ball.swayOffset; ball.vx_sway_direction *= -1; if (gameWidth * BALL_SWAY_AMPLITUDE_RATIO !== 0) ball.swayTime = Math.asin( Math.max(-1, Math.min(1, (displayX - ball.x) / (gameWidth * BALL_SWAY_AMPLITUDE_RATIO))) );
-        } else if (displayX + ball.radius > gameWidth) { displayX = gameWidth - ball.radius; ball.x = displayX - ball.swayOffset; ball.vx_sway_direction *= -1; if (gameWidth * BALL_SWAY_AMPLITUDE_RATIO !== 0) ball.swayTime = Math.asin( Math.max(-1, Math.min(1, (displayX - ball.x) / (gameWidth * BALL_SWAY_AMPLITUDE_RATIO))) );}
-        const dxCursor = displayX - playerCursor.x; const dyCursor = ball.y - playerCursor.y; const distCursor = Math.sqrt(dxCursor * dxCursor + dyCursor * dyCursor); let pointsMultiplier = activePowerups.doublePoints.active ? 2 : 1;
-        if (distCursor < ball.radius + playerCursor.outerRadius) {
-            if (ball.isPowerup) { activatePowerup(getRandomPowerupType()); balls.splice(i, 1); continue; }
-            if (ball.colorName === 'white') { score += 1 * pointsMultiplier; playSound('collectGood'); balls.splice(i, 1); continue; }
-            const angle = (Math.atan2(dyCursor, dxCursor) + 2 * Math.PI) % (2 * Math.PI); let segmentHit = null; let greenStart = PLAYER_CURSOR_SEGMENT_ANGLES.green.start;
-            if ((angle >= greenStart && angle < PLAYER_CURSOR_SEGMENT_ANGLES.green.end) || (greenStart < 0 && angle >= (greenStart + 2*Math.PI))) { segmentHit = 'green';
-            } else if (angle >= PLAYER_CURSOR_SEGMENT_ANGLES.red.start && angle < PLAYER_CURSOR_SEGMENT_ANGLES.red.end) { segmentHit = 'red';
-            } else if (angle >= PLAYER_CURSOR_SEGMENT_ANGLES.blue.start && angle < PLAYER_CURSOR_SEGMENT_ANGLES.blue.end) { segmentHit = 'blue'; }
-            if (segmentHit) { if (segmentHit === ball.colorName) { score += 3 * pointsMultiplier; playSound('collectGood'); } else { lives--; playSound('loseLife'); } balls.splice(i, 1); continue;}
+
+        if (ball.colorName === 'white' && activePowerups.whiteBallMagnet.active && playerCursor) {
+            const magnetTargetX = playerCursor.x;
+            const magnetTargetY = playerCursor.y;
+            let dxToCursor = magnetTargetX - displayX;
+            let dyToCursor = magnetTargetY - ball.y;
+            let distToCursor = Math.sqrt(dxToCursor * dxToCursor + dyToCursor * dyToCursor);
+
+            if (distToCursor > 1) { // Only apply if not already on top
+                // Calculate pull speed: base pull + proximity pull, then scaled by deltaTimeS
+                let pullSpeed = (MAGNET_BASE_PULL_PPS + MAGNET_PROXIMITY_INTENSITY / (distToCursor + 10)) * deltaTimeS; // +10 to avoid extreme pull at very close distances
+                pullSpeed = Math.min(pullSpeed, distToCursor); // Don't overshoot in one frame
+
+                let pullXComponent = (dxToCursor / distToCursor) * pullSpeed;
+                let pullYComponent = (dyToCursor / distToCursor) * pullSpeed;
+                
+                ball.x += pullXComponent; // Apply to base x
+                ball.y += pullYComponent; // Apply to y (will combine with gravity)
+                
+                displayX = ball.x + ball.swayOffset; // Recalculate displayX
+            }
         }
-        if (bucket && (lineCircleCollision(bucket.P1, bucket.P2, {x: displayX, y: ball.y}, ball.radius) || lineCircleCollision(bucket.P2, bucket.P3, {x: displayX, y: ball.y}, ball.radius) || lineCircleCollision(bucket.P3, bucket.P4, {x: displayX, y: ball.y}, ball.radius)) ) {
-            if (ball.y + ball.radius >= bucket.y) { if (ball.isPowerup) { activatePowerup(getRandomPowerupType()); } else { score += 1 * pointsMultiplier; playSound('collectBucket'); } balls.splice(i, 1); continue;}}
-        if (ball.y - ball.radius > gameHeight) { if (!ball.isPowerup && ball.colorName !== 'white') { lives--; playSound('loseLife'); } balls.splice(i, 1);}
+
+        if (displayX - ball.radius < 0) { 
+            displayX = ball.radius; ball.x = displayX - ball.swayOffset; ball.vx_sway_direction *= -1; 
+            if (gameWidth * BALL_SWAY_AMPLITUDE_RATIO !== 0) ball.swayTime = Math.asin( Math.max(-1, Math.min(1, (displayX - ball.x) / (gameWidth * BALL_SWAY_AMPLITUDE_RATIO))) );
+        } else if (displayX + ball.radius > gameWidth) { 
+            displayX = gameWidth - ball.radius; ball.x = displayX - ball.swayOffset; ball.vx_sway_direction *= -1; 
+            if (gameWidth * BALL_SWAY_AMPLITUDE_RATIO !== 0) ball.swayTime = Math.asin( Math.max(-1, Math.min(1, (displayX - ball.x) / (gameWidth * BALL_SWAY_AMPLITUDE_RATIO))) );
+        }
+        
+        if (ball.isPowerup) addPowerupGlowParticle(displayX, ball.y); 
+
+        if (playerCursor) { 
+            const dxCursor = displayX - playerCursor.x; const dyCursor = ball.y - playerCursor.y; 
+            const distCursor = Math.sqrt(dxCursor * dxCursor + dyCursor * dyCursor); 
+            let pointsMultiplier = activePowerups.doublePoints.active ? 2 : 1;
+
+            if (distCursor < ball.radius + playerCursor.outerRadius) {
+                if (ball.isPowerup) { activatePowerup(getRandomPowerupType()); balls.splice(i, 1); continue; }
+                let soundToPlay = activePowerups.doublePoints.active ? 'collectGoodDouble' : 'collectGood';
+                if (ball.colorName === 'white') { score += 3 * pointsMultiplier; playSound(soundToPlay); balls.splice(i, 1); continue; }
+                
+                const angle = (Math.atan2(dyCursor, dxCursor) + 2 * Math.PI) % (2 * Math.PI); 
+                let segmentHit = null;
+                function isAngleInSegment(targetAngle, segStart, segEnd) {
+                    return segStart < segEnd ? (targetAngle >= segStart && targetAngle < segEnd) : (targetAngle >= segStart || targetAngle < segEnd);
+                }
+
+                if (isAngleInSegment(angle, PLAYER_CURSOR_SEGMENT_ANGLES.green.start, PLAYER_CURSOR_SEGMENT_ANGLES.green.end)) segmentHit = 'green';
+                else if (isAngleInSegment(angle, PLAYER_CURSOR_SEGMENT_ANGLES.red.start, PLAYER_CURSOR_SEGMENT_ANGLES.red.end)) segmentHit = 'red';
+                else if (isAngleInSegment(angle, PLAYER_CURSOR_SEGMENT_ANGLES.blue.start, PLAYER_CURSOR_SEGMENT_ANGLES.blue.end)) segmentHit = 'blue';
+                
+                if (segmentHit) { 
+                    if (segmentHit === ball.colorName) { score += 3 * pointsMultiplier; playSound(soundToPlay); } 
+                    else { 
+                        if (!activePowerups.invincibility.active) { lives--; playSound('loseLife'); }
+                        else { playSound('click'); } // Sound for wrong hit but invincible
+                    } 
+                    balls.splice(i, 1); continue;
+                }
+            }
+        }
+        
+        if (bucket && 
+            (lineCircleCollision(bucket.P1, bucket.P2, {x: displayX, y: ball.y}, ball.radius) || 
+             lineCircleCollision(bucket.P2, bucket.P3, {x: displayX, y: ball.y}, ball.radius) || 
+             lineCircleCollision(bucket.P3, bucket.P4, {x: displayX, y: ball.y}, ball.radius)) 
+           ) {
+            if (ball.isPowerup) { activatePowerup(getRandomPowerupType()); } 
+            else { score += 1 * (activePowerups.doublePoints.active ? 2 : 1); playSound('collectBucket'); } 
+            balls.splice(i, 1); continue;
+        }
+
+        if (ball.y - ball.radius > gameHeight) { 
+            if (!ball.isPowerup && ball.colorName !== 'white') { 
+                if (!activePowerups.invincibility.active) { lives--; playSound('loseLife'); }
+            } 
+            balls.splice(i, 1);
+        }
     }
 }
-function drawBalls(ctx) { balls.forEach(ball => { const displayX = ball.x + ball.swayOffset; let gradient; if (ball.colorName === 'powerup') { gradient = ctx.createRadialGradient(displayX, ball.y, ball.radius * 0.1, displayX, ball.y, ball.radius); gradient.addColorStop(0, '#FFFF8D'); gradient.addColorStop(1, POWERUP_BALL_COLOR); } else if (ball.colorName === 'white') { gradient = ctx.createRadialGradient(displayX, ball.y, ball.radius * 0.1, displayX, ball.y, ball.radius); gradient.addColorStop(0, '#FFFFFF'); gradient.addColorStop(1, '#E0E0E0');  } else { gradient = ctx.createRadialGradient(displayX, ball.y, ball.radius * 0.1, displayX, ball.y, ball.radius); const baseColor = ball.color;  let r = parseInt(baseColor.slice(1,3), 16); let g = parseInt(baseColor.slice(3,5), 16); let b = parseInt(baseColor.slice(5,7), 16); let lighterShade = `rgb(${Math.min(255, r+40)}, ${Math.min(255, g+40)}, ${Math.min(255, b+40)})`; gradient.addColorStop(0, lighterShade); gradient.addColorStop(1, baseColor); } ctx.fillStyle = gradient; ctx.beginPath(); ctx.arc(displayX, ball.y, ball.radius, 0, 2 * Math.PI); ctx.fill(); });}
+
+function drawBalls(ctx) {
+    balls.forEach(ball => {
+        const displayX = ball.x + ball.swayOffset;
+        const ballY = ball.y;
+        const lightnessCenterX = displayX - ball.radius * 0.30;
+        const lightnessCenterY = ballY - ball.radius * 0.30;
+        const baseHexColor = ball.colorHex; 
+        const glowSizeMultiplier = 1.9; 
+        const actualGlowOuterRadius = ball.radius * glowSizeMultiplier;
+        const glowGradientCtx = ctx.createRadialGradient( 
+            displayX, ballY, ball.radius,          
+            displayX, ballY, actualGlowOuterRadius 
+        );
+        let r_glow_src = parseInt(baseHexColor.slice(1, 3), 16);
+        let g_glow_src = parseInt(baseHexColor.slice(3, 5), 16);
+        let b_glow_src = parseInt(baseHexColor.slice(5, 7), 16);
+        const glowOpacityAtSource = 0.3; 
+        glowGradientCtx.addColorStop(0, `rgba(${r_glow_src},${g_glow_src},${b_glow_src},${glowOpacityAtSource})`);
+        glowGradientCtx.addColorStop(1, `rgba(${r_glow_src},${g_glow_src},${b_glow_src},0)`); 
+        ctx.fillStyle = glowGradientCtx;
+        ctx.beginPath();
+        ctx.arc(displayX, ballY, actualGlowOuterRadius, 0, Math.PI * 2); 
+        ctx.fill();
+        const ballGradient = ctx.createRadialGradient(
+            lightnessCenterX, lightnessCenterY, ball.radius * 0.00, 
+            displayX, ballY, ball.radius * 2.0 
+        );
+
+        if (ball.colorName === 'white') {
+            ballGradient.addColorStop(0, '#FFFFFF');    
+            ballGradient.addColorStop(0.25, '#FAFAFA'); 
+            ballGradient.addColorStop(0.5, '#F0F0F0');  
+            ballGradient.addColorStop(0.75, '#E0E0E0'); 
+            ballGradient.addColorStop(1, '#D0D0D0');    
+        } else {
+            let r_base = parseInt(baseHexColor.slice(1, 3), 16);
+            let g_base = parseInt(baseHexColor.slice(3, 5), 16);
+            let b_base = parseInt(baseHexColor.slice(5, 7), 16);
+            let [h, s, l] = rgbToHsl(r_base, g_base, b_base);
+            const lightnessIncreaseFactor = 0.20; 
+            let l_adjusted = Math.min(1, l + lightnessIncreaseFactor);
+                l_adjusted = Math.max(0, l_adjusted);                   
+            let [r_main, g_main, b_main] = hslToRgb(h, s, l_adjusted);
+            const mainColorInGradient = rgbArrayToHex([r_main, g_main, b_main]);
+            const highlightColor = '#FFFFFF'; 
+            const shadowColor = darkenColor(mainColorInGradient, 40);
+            ballGradient.addColorStop(0, highlightColor);
+            ballGradient.addColorStop(0.4, mainColorInGradient);
+            ballGradient.addColorStop(0.8, mainColorInGradient);
+            ballGradient.addColorStop(1, shadowColor);
+        }
+        ctx.fillStyle = ballGradient;
+        ctx.beginPath();
+        ctx.arc(displayX, ballY, ball.radius, 0, Math.PI * 2);
+        ctx.fill();
+    });
+}
 function updateBucket(deltaTimeS) { if(!bucket) return; if (keysPressed[keybindLeft]) { bucket.x -= currentBucketSpeedPPS * deltaTimeS; } if (keysPressed[keybindRight]) { bucket.x += currentBucketSpeedPPS * deltaTimeS; } if (bucket.x + bucket.baseWidth + bucket.sideRun < 0) { bucket.x = gameWidth + bucket.sideRun; }  else if (bucket.x - bucket.sideRun > gameWidth) { bucket.x = -bucket.baseWidth - bucket.sideRun; }}
-function drawBucket(ctx) { if(!bucket) return; ctx.strokeStyle = BUCKET_COLOR; ctx.lineWidth = 3;  ctx.beginPath(); ctx.moveTo(bucket.P1.x, bucket.P1.y); ctx.lineTo(bucket.P2.x, bucket.P2.y); ctx.lineTo(bucket.P3.x, bucket.P3.y); ctx.lineTo(bucket.P4.x, bucket.P4.y); ctx.stroke();}
-function drawPlayerCursor(ctx) { if (!playerCursor) return; const ringInnerRadius = playerCursor.outerRadius - playerCursor.ringThickness; ctx.fillStyle = 'white'; ctx.beginPath(); ctx.arc(playerCursor.x, playerCursor.y, ringInnerRadius, 0, 2 * Math.PI); ctx.fill(); const drawSegment = (color, startAngle, endAngle) => { ctx.fillStyle = color; ctx.beginPath(); ctx.moveTo(playerCursor.x, playerCursor.y);  ctx.arc(playerCursor.x, playerCursor.y, playerCursor.outerRadius, startAngle, endAngle, false); ctx.lineTo(playerCursor.x, playerCursor.y);  ctx.closePath(); ctx.fill(); }; drawSegment(PLAYER_CURSOR_OUTLINE_COLORS[1], PLAYER_CURSOR_SEGMENT_ANGLES.green.start, PLAYER_CURSOR_SEGMENT_ANGLES.green.end); drawSegment(PLAYER_CURSOR_OUTLINE_COLORS[0], PLAYER_CURSOR_SEGMENT_ANGLES.red.start, PLAYER_CURSOR_SEGMENT_ANGLES.red.end); drawSegment(PLAYER_CURSOR_OUTLINE_COLORS[2], PLAYER_CURSOR_SEGMENT_ANGLES.blue.start, PLAYER_CURSOR_SEGMENT_ANGLES.blue.end);}
+function drawBucket(ctx) {
+    if(!bucket) return; 
+    ctx.strokeStyle = BUCKET_COLOR; 
+    ctx.lineWidth = BUCKET_LINE_WIDTH; 
+    ctx.lineCap = 'round'; 
+    ctx.beginPath(); 
+    ctx.moveTo(bucket.P1.x, bucket.P1.y); 
+    ctx.lineTo(bucket.P2.x, bucket.P2.y); 
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(bucket.P4.x, bucket.P4.y);
+    ctx.lineTo(bucket.P3.x, bucket.P3.y);
+    ctx.stroke();
+    ctx.lineCap = 'butt'; 
+    ctx.beginPath();
+    ctx.moveTo(bucket.P2.x, bucket.P2.y); 
+    ctx.lineTo(bucket.P3.x, bucket.P3.y); 
+    ctx.stroke();
+}
+function drawPlayerCursor(ctx) { 
+    if (!playerCursor) return;
+    const visualGapWidth = 10;               
+    const centerBrightnessBoost = 0.45;
+    const edgeDarkenFactor = 0.15;
+    const gradientTransitionStart = 0.65;
+    const gradientTransitionEnd = 0.65;
+    const cursorCenterX = playerCursor.x;
+    const cursorCenterY = playerCursor.y;
+    const cursorOuterR = playerCursor.outerRadius;
+
+    const drawSegment = (baseHexColor, segmentKey) => {
+        const segmentAngles = PLAYER_CURSOR_SEGMENT_ANGLES[segmentKey];
+        const baseStartAngle = segmentAngles.start;
+        const baseEndAngle = segmentAngles.end;
+        let r_base = parseInt(baseHexColor.slice(1, 3), 16);
+        let g_base = parseInt(baseHexColor.slice(3, 5), 16);
+        let b_base = parseInt(baseHexColor.slice(5, 7), 16);
+        let [h, s, l_original] = rgbToHsl(r_base, g_base, b_base);
+        let l_brightest = Math.min(1, l_original + centerBrightnessBoost);
+        l_brightest = Math.max(0, l_brightest);
+        const brightestSegmentColor = rgbArrayToHex(hslToRgb(h, s, l_brightest));
+        const lightnessIncreaseFactor = 0.20; 
+        let l_normal = Math.min(1, l_original + lightnessIncreaseFactor);
+        l_normal = Math.max(0, l_normal);
+        const normalSegmentColor = rgbArrayToHex(hslToRgb(h, s, l_normal));
+        let l_darkest = Math.min(1, l_original - edgeDarkenFactor);
+        l_darkest = Math.max(0, l_darkest);
+        const darkestSegmentColor = rgbArrayToHex(hslToRgb(h, s, l_darkest));
+        const gradient = ctx.createRadialGradient(
+            cursorCenterX, cursorCenterY, 0,           
+            cursorCenterX, cursorCenterY, cursorOuterR 
+        );
+        gradient.addColorStop(0, brightestSegmentColor);
+        gradient.addColorStop(gradientTransitionStart, normalSegmentColor);
+        gradient.addColorStop(gradientTransitionEnd, normalSegmentColor);
+        gradient.addColorStop(1, darkestSegmentColor);
+        ctx.beginPath();
+        ctx.moveTo(cursorCenterX, cursorCenterY);
+        ctx.arc(cursorCenterX, cursorCenterY, cursorOuterR, baseStartAngle, baseEndAngle, false);
+        ctx.lineTo(cursorCenterX, cursorCenterY);
+        ctx.closePath();
+        ctx.fillStyle = gradient;
+        ctx.fill();
+    };
+    drawSegment(PLAYER_CURSOR_OUTLINE_COLORS[0], 'red');   
+    drawSegment(PLAYER_CURSOR_OUTLINE_COLORS[2], 'blue'); 
+    drawSegment(PLAYER_CURSOR_OUTLINE_COLORS[1], 'green');
+    
+    ctx.save(); 
+    ctx.globalCompositeOperation = 'destination-out'; 
+    ctx.lineWidth = visualGapWidth; 
+    ctx.strokeStyle = 'rgba(0,0,0,1)'; 
+    ctx.lineCap = 'butt';      
+    const separatorAngles = [
+        PLAYER_CURSOR_SEGMENT_ANGLES.red.start,
+        PLAYER_CURSOR_SEGMENT_ANGLES.blue.start,
+        PLAYER_CURSOR_SEGMENT_ANGLES.green.start
+    ];
+    separatorAngles.forEach(angle => {
+        ctx.beginPath();
+        ctx.moveTo(cursorCenterX, cursorCenterY);
+        const lineLength = cursorOuterR + 1; 
+        ctx.lineTo(
+            cursorCenterX + lineLength * Math.cos(angle),
+            cursorCenterY + lineLength * Math.sin(angle)
+        );
+        ctx.stroke(); 
+    });
+    ctx.restore(); 
+}
 
 // --- Main Game Loop ---
-// (Copied from your code (5).html)
-function gameLoop(timestamp) { if (!gameRunning) return; if (gamePaused) { animationFrameId = requestAnimationFrame(gameLoop); return; } const deltaTimeS = (timestamp - lastTime) / 1000; lastTime = timestamp; const maxSpeedActive = keysPressed[keybindMaxSpeed.toLowerCase()]; if (dropper1) dropper1.isMaxSpeedOverride = maxSpeedActive; if (dropper2) dropper2.isMaxSpeedOverride = maxSpeedActive; updateGameParameters(deltaTimeS); updateSingleDropper(dropper1, deltaTimeS, true);  updateSingleDropper(dropper2, deltaTimeS, false);  updateBucket(deltaTimeS);  updateBalls(deltaTimeS);  updateColorWheelParticles(deltaTimeS); ctx.clearRect(0, 0, gameWidth, gameHeight); drawSingleDropper(ctx, dropper1); drawSingleDropper(ctx, dropper2); drawBucket(ctx); drawBalls(ctx); drawColorWheelParticles(ctx); drawPlayerCursor(ctx); updateUI(); if (lives <= 0) { endGame(); return;  } animationFrameId = requestAnimationFrame(gameLoop);}
+function gameLoop(timestamp) { 
+    if (!gameRunning) return; 
+    if (gamePaused) { animationFrameId = requestAnimationFrame(gameLoop); return; } 
+    
+    const deltaTimeS = (timestamp - lastTime) / 1000; 
+    lastTime = timestamp; 
+    
+    const maxSpeedActive = keysPressed[keybindMaxSpeed.toLowerCase()]; 
+    if (dropper1) dropper1.isMaxSpeedOverride = maxSpeedActive; 
+    if (dropper2) dropper2.isMaxSpeedOverride = maxSpeedActive; 
+
+    updateGameParameters(deltaTimeS); 
+    updateSingleDropper(dropper1, deltaTimeS, true);  
+    updateSingleDropper(dropper2, deltaTimeS, false);  
+    updateBucket(deltaTimeS);  
+    updateBalls(deltaTimeS);  
+    updateColorWheelParticles(deltaTimeS); 
+    updatePowerupGlowParticles(deltaTimeS); 
+    updateAtmosphericParticles(deltaTimeS); 
+    updatePowerupIcons();
+    
+    gameCtx.clearRect(0, 0, gameWidth, gameHeight); 
+    drawAtmosphericParticles(gameCtx); 
+    drawSingleDropper(gameCtx, dropper1); 
+    drawSingleDropper(gameCtx, dropper2); 
+    drawBucket(gameCtx, bucket); 
+    drawPlayerCursor(gameCtx); 
+    drawBalls(gameCtx); 
+    drawPowerupGlowParticles(gameCtx); 
+    drawColorWheelParticles(gameCtx); 
+    
+    updateUI(); 
+    if (lives <= 0) { endGame(); return;  } 
+    animationFrameId = requestAnimationFrame(gameLoop);
+}
 
 </script>
 </body>
