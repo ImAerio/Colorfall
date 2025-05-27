@@ -1171,6 +1171,59 @@ function fnSetReplayButtonIcon(isPlaying) {
     }
 }
 
+function fnUpdateStaticEntityGeometryOnResize(passedOldGameWidth, passedOldGameHeight, passedNewGameWidth, passedNewGameHeight) {
+    const timeProgress = elapsedGameTimeMs / _MST; // Use global elapsedGameTimeMs for progression
+    const currentDropperTimePerScreenS = _IDTPS - (_IDTPS - _FDTP) * Math.min(1, timeProgress);
+
+    if (bucket) {
+        bucket.baseWidth = passedNewGameWidth * cBktWR; // cBktWR is global
+        if (passedOldGameWidth && passedOldGameWidth > 0) bucket.x = (bucket.x / passedOldGameWidth) * passedNewGameWidth;
+        bucket.y = passedNewGameHeight - BUCKET_HEIGHT - (BUCKET_LINE_WIDTH / 2); // BUCKET_HEIGHT, BUCKET_LINE_WIDTH are global
+    }
+    if (dropper1) {
+        if (passedOldGameWidth && passedOldGameWidth > 0) dropper1.x = (dropper1.x / passedOldGameWidth) * passedNewGameWidth;
+        dropper1.width = DROPPER_WIDTH_BOTTOM; // Global
+        dropper1.topWidth = DROPPER_WIDTH_BOTTOM * DROPPER_TOP_WIDTH_RATIO; // Globals
+        dropper1.speed = (passedNewGameWidth - DROPPER_WIDTH_BOTTOM) / currentDropperTimePerScreenS;
+    }
+    if (dropper2) {
+        if (passedOldGameWidth && passedOldGameWidth > 0) dropper2.x = (dropper2.x / passedOldGameWidth) * passedNewGameWidth;
+        dropper2.width = DROPPER_WIDTH_BOTTOM; // Global
+        dropper2.topWidth = DROPPER_WIDTH_BOTTOM * DROPPER_TOP_WIDTH_RATIO; // Globals
+        dropper2.speed = (passedNewGameWidth - DROPPER_WIDTH_BOTTOM) / currentDropperTimePerScreenS;
+    }
+    balls.forEach(ball => { // balls is global
+        if (passedOldGameWidth && passedOldGameWidth > 0 && passedOldGameHeight && passedOldGameHeight > 0) {
+            ball.x = (ball.x / passedOldGameWidth) * passedNewGameWidth;
+            ball.y = (ball.y / passedOldGameHeight) * passedNewGameHeight;
+        }
+        // BALL_RADIUS_BASE is global and updated early in handleResize
+        const oldBallRadiusBaseVal = (passedOldGameWidth && passedOldGameWidth > 0) ? ((passedOldGameWidth * 0.05) - (passedOldGameWidth * 0.05 * 0.35)) / 3.5 : BALL_RADIUS_BASE;
+        const sizeMultiplier = ball.radius / (oldBallRadiusBaseVal > 0 ? oldBallRadiusBaseVal : BALL_RADIUS_BASE);
+        ball.radius = BALL_RADIUS_BASE * sizeMultiplier;
+
+        if (ball.originalVy && ball.vy) {
+            // activePowerups, currentGameMode, rVState are global
+            const isSlowFallCurrentlyActive = activePowerups.slowFall.active && (currentGameMode === 'classic' && !rVState.activeReplay);
+            const currentEffectiveOldHeight = (passedOldGameHeight && passedOldGameHeight > 0) ? passedOldGameHeight : passedNewGameHeight;
+            const fallDuration = currentEffectiveOldHeight / (ball.originalVy / (isSlowFallCurrentlyActive ? _SFSM : 1)); // _SFSM is global
+            if (fallDuration > 0) {
+                ball.originalVy = passedNewGameHeight / fallDuration;
+                ball.vy = isSlowFallCurrentlyActive ? ball.originalVy * _SFSM : ball.originalVy;
+            } else {
+                ball.originalVy = passedNewGameHeight / _MBFTS; // _MBFTS is global
+                ball.vy = ball.originalVy;
+            }
+        }
+    });
+    if (playerCursor) { // playerCursor is global
+        if (passedOldGameWidth && passedOldGameWidth > 0 && passedOldGameHeight && passedOldGameHeight > 0) {
+            playerCursor.x = (playerCursor.x / passedOldGameWidth) * passedNewGameWidth;
+            playerCursor.y = (playerCursor.y / passedOldGameHeight) * passedNewGameHeight;
+        }
+    }
+}
+
 function handleResize(){
     const oldGameWidth = gameWidth;
     const oldGameHeight = gameHeight;
@@ -1247,52 +1300,7 @@ function handleResize(){
 
 
     if (wasActive && !wasReplayActive) {
-        const timeProgress = elapsedGameTimeMs / _MST;
-        const currentDropperTimePerScreenS = _IDTPS - (_IDTPS - _FDTP) * Math.min(1, timeProgress);
-        if (bucket) {
-            bucket.baseWidth = gameWidth * cBktWR;
-            if (oldGameWidth && oldGameWidth > 0) bucket.x = (bucket.x / oldGameWidth) * gameWidth;
-            bucket.y = gameHeight - BUCKET_HEIGHT - (BUCKET_LINE_WIDTH / 2);
-        }
-        if (dropper1) {
-            if (oldGameWidth && oldGameWidth > 0) dropper1.x = (dropper1.x / oldGameWidth) * gameWidth;
-            dropper1.width = DROPPER_WIDTH_BOTTOM;
-            dropper1.topWidth = DROPPER_WIDTH_BOTTOM * DROPPER_TOP_WIDTH_RATIO;
-            dropper1.speed = (gameWidth - DROPPER_WIDTH_BOTTOM) / currentDropperTimePerScreenS;
-        }
-        if (dropper2) {
-            if (oldGameWidth && oldGameWidth > 0) dropper2.x = (dropper2.x / oldGameWidth) * gameWidth;
-            dropper2.width = DROPPER_WIDTH_BOTTOM;
-            dropper2.topWidth = DROPPER_WIDTH_BOTTOM * DROPPER_TOP_WIDTH_RATIO;
-            dropper2.speed = (gameWidth - DROPPER_WIDTH_BOTTOM) / currentDropperTimePerScreenS;
-        }
-        balls.forEach(ball => {
-            if (oldGameWidth && oldGameWidth > 0 && oldGameHeight && oldGameHeight > 0) {
-                ball.x = (ball.x / oldGameWidth) * gameWidth;
-                ball.y = (ball.y / oldGameHeight) * gameHeight;
-            }
-            const oldBallRadiusBaseVal = (oldGameWidth && oldGameWidth > 0) ? ((oldGameWidth * 0.05) - (oldGameWidth * 0.05 * 0.35)) / 3.5 : BALL_RADIUS_BASE;
-            const sizeMultiplier = ball.radius / (oldBallRadiusBaseVal > 0 ? oldBallRadiusBaseVal : BALL_RADIUS_BASE);
-            ball.radius = BALL_RADIUS_BASE * sizeMultiplier;
-            if (ball.originalVy && ball.vy) {
-                const isSlowFallCurrentlyActive = activePowerups.slowFall.active && (currentGameMode === 'classic' && !rVState.activeReplay);
-                const currentEffectiveOldHeight = (oldGameHeight && oldGameHeight > 0) ? oldGameHeight : gameHeight;
-                const fallDuration = currentEffectiveOldHeight / (ball.originalVy / (isSlowFallCurrentlyActive ? _SFSM : 1));
-                if (fallDuration > 0) {
-                    ball.originalVy = gameHeight / fallDuration;
-                    ball.vy = isSlowFallCurrentlyActive ? ball.originalVy * _SFSM : ball.originalVy;
-                } else {
-                    ball.originalVy = gameHeight / _MBFTS;
-                    ball.vy = ball.originalVy;
-                }
-            }
-        });
-        if (playerCursor) {
-            if (oldGameWidth && oldGameWidth > 0 && oldGameHeight && oldGameHeight > 0) {
-                playerCursor.x = (playerCursor.x / oldGameWidth) * gameWidth;
-                playerCursor.y = (playerCursor.y / oldGameHeight) * gameHeight;
-            }
-        }
+        fnUpdateStaticEntityGeometryOnResize(oldGameWidth, oldGameHeight, gameWidth, gameHeight);
     }
 
     fnITP();
@@ -1326,6 +1334,12 @@ function handleResize(){
             aCtx.clearRect(0, 0, gameWidth, gameHeight);
             fnDTP(aCtx);
         }
+        // **** MODIFICATION START ****
+        if (gameOverScreen && gameOverScreen.style.display === 'flex') {
+            fnUpdateStaticEntityGeometryOnResize(oldGameWidth, oldGameHeight, gameWidth, gameHeight);
+            redrawStaticFrame();
+        }
+        // **** MODIFICATION END ****
     }
 }
 
@@ -4481,6 +4495,11 @@ window.onload=()=>{
         aCtx.clearRect(0,0,gameWidth,gameHeight);
         fnDTP(aCtx);
     }
+        // **** MODIFICATION START ****
+        if (gameOverScreen && gameOverScreen.style.display === 'flex') {
+            redrawStaticFrame();
+        }
+        // **** MODIFICATION END ****
 };
 </script>
 </body>
