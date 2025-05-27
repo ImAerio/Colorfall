@@ -309,7 +309,7 @@ button.copied-success {
             border-radius: 5px;
             cursor: pointer;
             margin: 0;
-            transition: background-color 0.2s;
+            transition: none;
             display: inline-flex;
             align-items: center;
             justify-content: center;
@@ -317,9 +317,16 @@ button.copied-success {
             text-align: center;
             height: 44px; /* Explicit height */
             box-sizing: border-box;
+            transition: none;
         }
         #autosaveThresholdBtn:hover {
             background-color: #0056b3;
+            transition: background-color 0.2s;
+        }
+        #autosaveThresholdBtn:disabled {
+            background-color: #555 !important;
+            cursor: not-allowed !important;
+            transition: none !important;
         }
         /* Ensure the points text next to threshold button is aligned */
         #autosaveThresholdContainer .setting-control-group span {
@@ -441,7 +448,6 @@ button.copied-success {
             border-radius: 5px;
             cursor: pointer;
             margin: 0;
-            transition: background-color 0.2s;
             display: inline-flex;
             align-items: center;
             justify-content: center;
@@ -452,10 +458,12 @@ button.copied-success {
         }
         button.keybindBtn:hover {
             background-color: #0056b3;
+            transition: background-color 0.2s;
         }
         button.keybindBtn:disabled{
             background-color:#555;
             cursor:not-allowed;
+            transition: none !important;
         }
 
         select.styled-select {
@@ -2114,7 +2122,7 @@ function createItemListItem(itemData, isReplayScreen, rank = null) {
              const deleteBtn = document.createElement('button');
              deleteBtn.title = 'Delete Replay';
              deleteBtn.classList.add('delete-btn-geom');
-             deleteBtn.innerHTML = `<svg viewBox="0 0 10 10" class="delete-svg-icon" xmlns="http://www.w3.org/2000/svg"><line x1="1.5" y1="1.5" x2="8.5" y2="8.5"/><line x1="8.5" y1="1.5" x2="1.5" y2="8.5"/></svg>`;
+             deleteBtn.innerHTML = `<svg viewBox="0 0 10 10" class="delete-svg-icon" xmlns="http://www.w3.org/2000/svg"><line x1="1.5" y1="1.5" x2="8.5" y2="8.5" stroke-linecap="round"/><line x1="8.5" y1="1.5" x2="1.5" y2="8.5" stroke-linecap="round"/></svg>`;
              // For deleting a replay, we also need to delete its shared note
              deleteBtn.onclick = (e) => {
                  e.stopPropagation();
@@ -2198,7 +2206,7 @@ function createItemListItem(itemData, isReplayScreen, rank = null) {
              const deleteBtn = document.createElement('button');
              deleteBtn.title = 'Delete Replay';
              deleteBtn.classList.add('delete-btn-geom');
-             deleteBtn.innerHTML = `<svg viewBox="0 0 10 10" class="delete-svg-icon" xmlns="http://www.w3.org/2000/svg"><line x1="1.5" y1="1.5" x2="8.5" y2="8.5"/><line x1="8.5" y1="1.5" x2="1.5" y2="8.5"/></svg>`;
+             deleteBtn.innerHTML = `<svg viewBox="0 0 10 10" class="delete-svg-icon" xmlns="http://www.w3.org/2000/svg"><line x1="1.5" y1="1.5" x2="8.5" y2="8.5" stroke-linecap="round"/><line x1="8.5" y1="1.5" x2="1.5" y2="8.5" stroke-linecap="round"/></svg>`;
              deleteBtn.onclick = (e) => {
                  e.stopPropagation();
                  fnPS('click');
