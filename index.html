@@ -1384,6 +1384,7 @@ function redrawStaticFrame() {
     if (playerCursor) fnDPC(gameCtx); // Player cursor itself
 
     // Draw Balls NEXT
+    // if(currentGameMode==='classic'){fnDPGP(gameCtx);} // Removed, now called from within fnDB
     fnDB(gameCtx);
 
     // Draw Droppers AFTER Balls
@@ -1391,7 +1392,7 @@ function redrawStaticFrame() {
     if (dropper2) fnDSD(gameCtx,dropper2);
 
     const currentDisplayMode = rVState.activeReplay ? (R_GM_REV_MAP[rVState.activeReplay.gm] || 'classic') : currentGameMode;
-    if(currentDisplayMode === 'classic'){fnDPGP(gameCtx);} // Power-up glow particles
+    // if(currentDisplayMode === 'classic'){fnDPGP(gameCtx);} // Power-up glow particles - Now called from within fnDB
 
     fnUUI(); // Update score/time/lives display
 }
@@ -3821,6 +3822,7 @@ function fnDB(ctx){
     };
 
     drawBallType(whiteBallsToDraw);
+    if(currentGameMode==='classic'){fnDPGP(ctx);} 
     drawBallType(powerupBallsToDraw);
     drawBallType(rgbBallsToDraw);
 }
@@ -3890,7 +3892,7 @@ function fnDPC(ctx){ // ctx is gameCtx
         tempCtx.beginPath();
         tempCtx.moveTo(0,0); // Logical center
         // Extend line slightly (0.5 logical pixel for a clean cutout)
-        const lL= cOR + tempCtx.lineWidth / 2 + 0.5; 
+        const lL= cOR + tempCtx.lineWidth / 2; 
         tempCtx.lineTo(0 + lL*Math.cos(a), 0 + lL*Math.sin(a));
         tempCtx.stroke();
     });
@@ -3948,7 +3950,7 @@ function fnGL(timestamp){
     if(dropper2)fnDSD(gameCtx,dropper2);
 
     // Draw Power-up Glow Particles last (they should be on top of balls)
-    if(currentGameMode==='classic'){fnDPGP(gameCtx);}
+    // if(currentGameMode==='classic'){fnDPGP(gameCtx);} // Now called from within fnDB
     fnUUI();
     if(lives<=0){fnEG();return;}
     animationFrameId=requestAnimationFrame(fnGL);
