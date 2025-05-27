@@ -3897,6 +3897,7 @@ function fnDPC(ctx){ // ctx is gameCtx
         tempCtx.stroke();
     });
     tempCtx.globalCompositeOperation='source-over'; // Reset composite operation
+    tempCtx.clearRect(-1, -1, 2, 2);
 
     // Draw the temporary canvas onto the main game canvas (ctx)
     // Position using playerCursor's logical coordinates, draw with logical dimensions
