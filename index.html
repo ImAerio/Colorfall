@@ -3375,10 +3375,18 @@ function fnSG(clickEvent){
         if (rect.width > 0 && rect.height > 0) {
             initialCursorX = clickEvent.clientX - rect.left;
             initialCursorY = clickEvent.clientY - rect.top;
-            initialCursorX = Math.max(0, Math.min(gameWidth, initialCursorX));
-            initialCursorY = Math.max(0, Math.min(gameHeight, initialCursorY));
+        }
+    } else if (gameCanvas && typeof lastKnownMouseX === 'number' && typeof lastKnownMouseY === 'number') {
+        const rect = gameCanvas.getBoundingClientRect();
+        if (rect.width > 0 && rect.height > 0) {
+            initialCursorX = lastKnownMouseX - rect.left;
+            initialCursorY = lastKnownMouseY - rect.top;
         }
     }
+    // Clamp coordinates to be within the canvas boundaries
+    initialCursorX = Math.max(0, Math.min(gameWidth, initialCursorX));
+    initialCursorY = Math.max(0, Math.min(gameHeight, initialCursorY));
+
     playerCursor = { x: initialCursorX, y: initialCursorY, outerRadius: _PCOR, ringThickness: _PCRT };
 
     fnUPI(); 
