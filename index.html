@@ -27,7 +27,7 @@
             width: 100%; 
             height: auto; 
         }
-        canvas#gameCanvas{border:1px solid #444;background:linear-gradient(80deg,#0f0e14,#211f29 23%,#211f29 30%,#1c1a24 50%,#211f29 70%,#211f29 77%,#0f0e14);cursor:none;position:relative;z-index:2; display: block;}
+canvas#gameCanvas{border:1px solid #2c2c34;background:linear-gradient(80deg,#0f0e14,#211f29 23%,#211f29 30%,#1c1a24 50%,#211f29 70%,#211f29 77%,#0f0e14);cursor:none;position:relative;z-index:2; display: block;}
         #atmosphericCanvas{position:absolute;top:0;left:0;pointer-events:none;z-index:1; display: block;}
         
                 
@@ -57,15 +57,15 @@
              
         }
 #saveReplayBtn.limit-reached {
-    background-color: #555 !important;
-    border: 2px solid #444 !important;
+    background-color: #383c4a !important;
+    border: 2px solid #2c2c34 !important;
     padding: 10px 23px !important; /* 12-2=10, 25-2=23 */
     cursor: not-allowed !important;
 }
 
 #saveReplayBtn.limit-reached:hover {
-    background-color: #555 !important; 
-    border: 2px solid #444 !important;
+    background-color: #383c4a !important; 
+    border: 2px solid #2c2c34 !important;
 }
         
         .leaderboard ol, .replays-mode-list {
@@ -103,7 +103,7 @@
         .mode-tab-buttons {
     display: flex;
     margin-bottom: 20px; 
-    border-bottom: 1px solid #444; 
+    border-bottom: 1px solid #2c2c34; 
     width: 100%; 
     padding: 0 20px; 
     position: sticky; 
@@ -117,7 +117,7 @@
         .mode-tab-btn {
             font-family: inherit;
             background-color: transparent;
-            color: #a0a0a0;
+            color: #9098a0;
             border: 2px solid transparent; 
             padding: 10px 23px; /* 12-2=10, 25-2=23 */
             font-size: 1.1em;   
@@ -128,15 +128,15 @@
             border-bottom-color: transparent; 
         }
         .mode-tab-btn:hover {
-            background-color: #2a2a2a;
-            border-color: #3a3a3a; 
+            background-color: #383c4a;
+            border-color: #4a4a52; 
             color: #e0e0e0;
         }
         .mode-tab-btn.active {
-            background-color: #333;
+            background-color: #4a4a52;
             color: #61dafb;
-            border: 1px solid #444; 
-            border-bottom: 1px solid #333; 
+            border: 1px solid #2c2c34; 
+            border-bottom: 1px solid #4a4a52; 
             padding: 11px 24px; /* Revert for 1px structural border */
             font-weight: bold;
         }
@@ -166,7 +166,7 @@
         .cosmetic-tabs-container {
     display: flex;
     margin-bottom: 20px;
-    border-bottom: 1px solid #444; 
+    border-bottom: 1px solid #2c2c34; 
     position: sticky; /* Make cosmetic tabs sticky */
     top: 0; /* Stick to the top of its scrollable parent */
     background-color: #1a1a1a;
@@ -180,7 +180,7 @@
         .cosmetic-tab-btn {
             font-family: inherit;
             background-color: transparent;
-            color: #a0a0a0;
+            color: #9098a0;
             border: 2px solid transparent; 
             padding: 8px 18px; /* 10-2=8, 20-2=18 */
             font-size: 1em;
@@ -191,15 +191,15 @@
             border-bottom-color: transparent;
         }
         .cosmetic-tab-btn:hover {
-            background-color: #2a2a2a;
-            border-color: #3a3a3a; 
+            background-color: #383c4a;
+            border-color: #4a4a52; 
             color: #e0e0e0;
         }
         .cosmetic-tab-btn.active {
-            background-color: #333;
+            background-color: #4a4a52;
             color: #61dafb;
-            border: 1px solid #444; 
-            border-bottom: 1px solid #333; 
+            border: 1px solid #2c2c34; 
+            border-bottom: 1px solid #4a4a52; 
             padding: 9px 19px; /* Revert for 1px structural border */
             font-weight: bold;
         }
@@ -213,8 +213,8 @@
             display: flex;
         }
 
-        .cosmetic-section {
-            background-color: #282828;
+         .cosmetic-section {
+            background-color: #2c2c34;
             padding: 15px;
             border-radius: 5px;
         }
@@ -222,7 +222,7 @@
             color: #61dafb;
             margin-top: 0;
             margin-bottom: 15px;
-            border-bottom: 1px solid #444;
+            border-bottom: 1px solid #383c4a; /* Slightly lighter border for contrast on #2c2c34 */
             padding-bottom: 10px;
         }
 
@@ -246,11 +246,11 @@
         }
         .cosmetic-item-list .no-items-text {
             font-style: italic;
-            color: #888;
+            color: #707880;
         }
 
         .cosmetic-item {
-            background-color: #333;
+            background-color: #383c4a;
             padding: 10px 15px;
             border-radius: 4px;
             display: flex;
@@ -261,18 +261,22 @@
         .cosmetic-item span {
             flex-grow: 1;
         }
-        .cosmetic-equip-btn {
+         .cosmetic-equip-btn {
             background-color: #007bff;
             color: white;
             border: 2px solid #0056b3;
-            padding: 4px 10px; /* 6-2=4, 12-2=10 */
+            padding: 8px 10px; /* Increased top/bottom padding (e.g., from 4px to 8px) */
             font-size: 0.9em;
-            border-radius: 3px;
+            border-radius: 5px;
             cursor: pointer;
             margin-left: 10px;
             min-width: 80px; 
             text-align: center;
             transition: background-color 0.2s, border-color 0.2s;
+            line-height: normal; /* Ensure text stays centered if it wraps due to less horizontal space */
+            display: inline-flex; /* Helps with vertical alignment of text */
+            align-items: center; /* Vertically center text */
+            justify-content: center; /* Horizontally center text */
         }
          .cosmetic-equip-btn:hover {
             background-color: #0056b3;
@@ -310,7 +314,7 @@
 
         
                 .item-content-box {
-            background-color:#333;
+            background-color:#383c4a;
             padding: 8px 12px;
             border-radius:3px;
             font-size:0.95em;
@@ -330,7 +334,7 @@
             font-size: 1.1em !important; 
         }
 .item-note-container {
-    background-color: #444; 
+    background-color: #2c2c34; /* CHANGED to darker blueish gray */
     padding: 8px 12px;
     border-radius: 0 0 3px 3px;
     font-size: 1em;
@@ -359,9 +363,9 @@
 
 .note-editable-area {
     color: #e0e0e0;
-    background-color: #3f3f3f;
+    background-color: #2c2c34; /* NEW background - desired darker blueish gray */
     padding: 5px;
-    border: 1px solid #555;
+    border: 1px solid #4a4a52;    /* NEW border - desired lighter blueish gray */
     border-radius: 3px;
     min-height: 20px;
     outline: none;
@@ -476,18 +480,25 @@ button.copied-success {
 }  
         #powerupIconsContainer{position:absolute;top:80px;left:15px;display:flex;flex-direction:column;gap:10px;pointer-events:none;z-index:5}
         #powerupIconsContainer.replay-mode { top: 80px; bottom: auto;}
-        .powerup-icon{width:40px;height:40px;border:2px solid #555;background-color:rgba(0,0,0,0.4);display:flex;justify-content:center;align-items:center;font-size:1.2em;font-weight:bold;color:#777;border-radius:5px;transition:color 0.2s,border-color 0.2s,box-shadow 0.2s;position:relative;overflow:hidden}
+        .powerup-icon{width:40px;height:40px;border:2px solid #4a4a52;background-color:rgba(0,0,0,0.4);display:flex;justify-content:center;align-items:center;font-size:1.2em;font-weight:bold;color:#707880;border-radius:5px;transition:color 0.2s,border-color 0.2s,box-shadow 0.2s;position:relative;overflow:hidden}
         .powerup-icon.active{color:#fff;border-color:#FFDC00;box-shadow:0 0 8px #FFDC00}
         #oneColorIcon.active{color:#fff}
         .powerup-icon.flashing{animation:flashPowerup 0.3s ease-in-out infinite alternate}
-        @keyframes flashPowerup{from{border-color:#FFDC00;box-shadow:0 0 10px #FFDC00;opacity:1}to{border-color:#777;box-shadow:0 0 3px #777;opacity:0.7}}
-        #magnetIcon .magnet-body{width:60%;height:40%;border:5px solid #777777;border-bottom:none;border-radius:15px 15px 0 0;position:absolute;top:20%;left:50%;transform:translateX(-50%);box-sizing:border-box}
-        #magnetIcon .magnet-pole{width:13%;height:10%;background-color:#777777;position:absolute;bottom:20%;box-sizing:border-box}
+        @keyframes flashPowerup{from{border-color:#FFDC00;box-shadow:0 0 10px #FFDC00;opacity:1}to{border-color:#707880;box-shadow:0 0 3px #707880;opacity:0.7}}
+        #magnetIcon .magnet-body{width:60%;height:40%;border:5px solid #707880;border-bottom:none;border-radius:15px 15px 0 0;position:absolute;top:20%;left:50%;transform:translateX(-50%);box-sizing:border-box}
+        #magnetIcon .magnet-pole{width:13%;height:10%;background-color:#707880;position:absolute;bottom:20%;box-sizing:border-box}
         #magnetIcon .magnet-pole-left{left:20%}
         #magnetIcon .magnet-pole-right{right:20%}
         #magnetIcon.active .magnet-body{border-color:white}
         #magnetIcon.active .magnet-pole{background-color:white}
-        #gameOverScreen{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background-color:rgba(0,0,0,0.85);padding:25px 30px;border-radius:10px;border:1px solid #555;z-index:100;display:flex;flex-direction:column;align-items:center;min-width:350px}
+#gameOverScreen{
+    position:absolute;
+    top:50%;left:50%;transform:translate(-50%,-50%);
+    background-color:rgba(0,0,0,0.85);
+    padding:25px 30px;border-radius:10px;border:1px solid #2c2c34;
+    z-index:100;display:flex;flex-direction:column;align-items:center;
+    min-width: 400px; 
+}
         #newHighScoreText{color:#FFDC00;font-size:1.3em;margin-bottom:10px}
         #gameOverScreen h2{margin-top:0;margin-bottom:20px;color:#61dafb;font-weight:700}
         #gameOverScoreTime{display:flex;justify-content:space-around;width:100%;margin-bottom:25px;font-size:1.1em}
@@ -565,8 +576,8 @@ button.copied-success {
             border-color: #004085;
         }
         #autosaveThresholdBtn:disabled {
-            background-color: #555 !important;
-            border-color: #444 !important;
+            background-color: #383c4a !important;
+            border-color: #2c2c34 !important;
             cursor: not-allowed !important;
         }
         #autosaveThresholdContainer .setting-control-group span {
@@ -602,23 +613,23 @@ button.copied-success {
     border-color: #155724 !important;
 }
         
-        #slowFallIcon .up-arrow-shaft{position:absolute;width:6px;height:18px;background-color:#777;left:50%;bottom:8px;transform:translateX(-50%);transition:background-color 0.2s}
-        #slowFallIcon .up-arrow-head{position:absolute;width:0;height:0;border-left:9px solid transparent;border-right:9px solid transparent;border-bottom:12px solid #777;left:50%;top:8px;transform:translateX(-50%);transition:border-bottom-color 0.2s}
+        #slowFallIcon .up-arrow-shaft{position:absolute;width:6px;height:18px;background-color:#707880;left:50%;bottom:8px;transform:translateX(-50%);transition:background-color 0.2s}
+        #slowFallIcon .up-arrow-head{position:absolute;width:0;height:0;border-left:9px solid transparent;border-right:9px solid transparent;border-bottom:12px solid #707880;left:50%;top:8px;transform:translateX(-50%);transition:border-bottom-color 0.2s}
         #slowFallIcon.active .up-arrow-shaft{background-color:white}
         #slowFallIcon.active .up-arrow-head{border-bottom-color:white}
-        #wideBucketIcon .wide-bucket-base-angled{position:absolute;width:60%;height:12%;background-color:#777;bottom:30%;left:50%;transform:translateX(-50%);transition:background-color 0.2s}
-        #wideBucketIcon .wide-bucket-side-angled{position:absolute;width:12%;height:30%;background-color:#777;bottom:33%;transition:background-color 0.2s}
+        #wideBucketIcon .wide-bucket-base-angled{position:absolute;width:60%;height:12%;background-color:#707880;bottom:30%;left:50%;transform:translateX(-50%);transition:background-color 0.2s}
+        #wideBucketIcon .wide-bucket-side-angled{position:absolute;width:12%;height:30%;background-color:#707880;bottom:33%;transition:background-color 0.2s}
         #wideBucketIcon .wide-bucket-left-angled{left:20%;transform-origin:bottom center;transform:rotate(-22.5deg)}
         #wideBucketIcon .wide-bucket-right-angled{right:20%;transform-origin:bottom center;transform:rotate(22.5deg)}
         #wideBucketIcon.active .wide-bucket-base-angled,
         #wideBucketIcon.active .wide-bucket-side-angled{background-color:white}
-        #oneColorIcon .one-color-circle-shape{width:55%;height:55%;background-color:#777;border-radius:50%;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);transition:background-color 0.2s}
+        #oneColorIcon .one-color-circle-shape{width:55%;height:55%;background-color:#707880;border-radius:50%;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);transition:background-color 0.2s}
         #oneColorIcon.active .one-color-circle-shape{background-color:white}
         
         button{font-family:inherit;background-color:#007bff;color:white;border:2px solid #0056b3;padding:10px 23px;font-size:1em;border-radius:5px;cursor:pointer;margin:10px;transition:background-color 0.2s, border-color 0.2s; display: inline-flex; align-items: center; justify-content: center;}
         button:hover{background-color:#0056b3; border-color: #004085;}
         .keybindBtn{min-width:80px;text-align:center; justify-content: center;} 
-        .keybindBtn:disabled{background-color:#555; border-color: #444; cursor:not-allowed}
+        .keybindBtn:disabled{background-color:#383c4a; border-color: #2c2c34; cursor:not-allowed}
         
         h1{color:#61dafb;font-weight:700;margin-bottom:25px}
 
@@ -690,7 +701,7 @@ button.copied-success {
         }
 
                 .setting-section {
-            background-color: #282828; 
+            background-color: #2c2c34; 
             padding: 15px;
             border-radius: 5px;
             width: 100%; 
@@ -704,13 +715,13 @@ button.copied-success {
             color: #61dafb;
             margin-top: 0;
             margin-bottom: 15px; 
-            border-bottom: 1px solid #444;
+            border-bottom: 1px solid #383c4a; /* Lighter border for contrast */
             padding-bottom: 10px;
             text-align: left; 
         }
 
         .setting-item {
-            background-color: #333; 
+            background-color: #383c4a; 
             padding: 12px 20px;
             border-radius: 5px;
             font-size: 1.05em;
@@ -818,7 +829,7 @@ button.copied-success {
         }
 
         select.styled-select option {
-            background-color: #333; 
+            background-color: #383c4a; 
             color: #e0e0e0;      
         }
 
@@ -826,7 +837,19 @@ button.copied-success {
             padding-top: 8px;    
             padding-bottom: 8px; 
         }
-        #howToPlayScreenContent, #appearanceScreenContent {flex-grow:1;overflow-y:auto;min-height:0;width:100%;padding-right:15px;text-align:left;padding-bottom:20px}
+#howToPlayScreenContent, #appearanceScreenContent {
+    text-align:left;
+    /*
+    flex-grow, overflow-y, min-height, width, and padding properties
+    are now primarily handled by the .scrollable-content-wrapper class
+    that both #howToPlayScreenContent and #appearanceScreenContent elements have.
+    This ensures #appearanceScreenContent uses 20px right padding from
+    .scrollable-content-wrapper, matching its left padding, which fixes
+    the horizontal overflow with the sticky .cosmetic-tabs-container.
+    The specific rule for #howToPlayScreenContent (if it needs different padding)
+    will still apply due to CSS specificity.
+    */
+}
                 
         #howToPlayScreenContent {
             flex-grow:1;
@@ -842,7 +865,7 @@ button.copied-success {
         }
 
         .help-section {
-            background-color: #282828; 
+            background-color: #2c2c34; 
             padding: 20px; 
             border-radius: 5px;
             width: 100%;
@@ -853,7 +876,7 @@ button.copied-success {
             color: #61dafb;
             margin-top: 0;
             margin-bottom: 15px;
-            border-bottom: 1px solid #444;
+            border-bottom: 1px solid #383c4a; /* Lighter border for contrast */
             padding-bottom: 10px;
             font-size: 1.4em; 
         }
@@ -899,7 +922,7 @@ button.copied-success {
         
         #quitConfirmationDialog, #deleteReplayConfirmationDialog, #deleteAllReplaysConfirmationDialog, #exportReplayDialog, #importReplayDialog {
             position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background-color:rgba(20,20,25,0.95);
-            padding:25px 30px;border-radius:10px;border:1px solid #555;z-index:200;text-align:center;color:#e0e0e0;
+            padding:25px 30px;border-radius:10px;border:1px solid #2c2c34;z-index:200;text-align:center;color:#e0e0e0;
             box-shadow:0 0 15px rgba(0,0,0,0.5);display:flex;flex-direction:column;align-items:center; min-width: 300px; max-width: 90vw;
         }
         #quitConfirmationDialog p, #deleteReplayConfirmationDialog p, #deleteAllReplaysConfirmationDialog p, #exportReplayDialog p, #importReplayDialog p {
@@ -916,8 +939,8 @@ button.copied-success {
         #closeExportReplayBtn {background-color:#007bff; border-color: #0056b3;}
         #closeExportReplayBtn:hover {background-color:#0056b3; border-color: #004085;}
         
-        #exportReplayTextArea { width: 90%; min-height: 100px; max-height: 200px; margin-bottom: 15px; background-color: #2b2b2b; color: #e0e0e0; border: 1px solid #444; font-family: monospace; resize: vertical;}
-        #importReplayTextArea { width: 90%; min-height: 100px; max-height: 200px; margin-bottom: 15px; background-color: #2b2b2b; color: #e0e0e0; border: 1px solid #444; font-family: monospace; resize: vertical;}
+        #exportReplayTextArea { width: 90%; min-height: 100px; max-height: 200px; margin-bottom: 15px; background-color: #21252b; color: #e0e0e0; border: 1px solid #2c2c34; font-family: monospace; resize: vertical;}
+        #importReplayTextArea { width: 90%; min-height: 100px; max-height: 200px; margin-bottom: 15px; background-color: #21252b; color: #e0e0e0; border: 1px solid #2c2c34; font-family: monospace; resize: vertical;}
         #importReplayError {
             color: #dc3545;
             margin-top: 10px; 
@@ -929,7 +952,7 @@ button.copied-success {
         #importReplayAndPlayBtn { background-color: #28a745 !important; border-color: #1e7e34 !important; display: flex; align-items: center; justify-content: center; padding: 8px 13px !important;} /* 10-2=8, 15-2=13 */
         #importReplayAndPlayBtn svg.play-svg-icon { margin-right: 8px; width:18px; height:18px;} 
 
-        #modeSelectionDialog{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background-color:rgba(20,20,25,0.95);padding:30px 40px;border-radius:10px;border:1px solid #555;z-index:250;text-align:center;color:#e0e0e0;box-shadow:0 0 20px rgba(0,0,0,0.6);flex-direction:column;align-items:center}
+        #modeSelectionDialog{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background-color:rgba(20,20,25,0.95);padding:30px 40px;border-radius:10px;border:1px solid #2c2c34;z-index:250;text-align:center;color:#e0e0e0;box-shadow:0 0 20px rgba(0,0,0,0.6);flex-direction:column;align-items:center}
         #modeSelectionDialog h2{margin-top:0;margin-bottom:25px;color:#61dafb}
         #modeSelectionButtons{display:flex;justify-content:center;margin-bottom:10px}
         #modeSelectionButtons button{margin:0 15px;min-width:120px}
@@ -1106,6 +1129,43 @@ body #replaysScreen .replays-mode-list .replay-item .item-actions button svg {
     
 }
 
+/* Custom Scrollbar Styles */
+::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+}
+
+::-webkit-scrollbar-track {
+    background: #2c2c34; /* Slightly different from cosmetic-section for contrast */
+    border-radius: 5px;
+    margin: 2px; /* Small margin from the edge */
+}
+
+::-webkit-scrollbar-thumb {
+    background-color: #4a4a52;
+    border-radius: 5px;
+    border: 2px solid #2c2c34; /* Creates a "padding" effect, same as track background */
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background-color: #5f6773; /* Use a highlight color on hover */
+}
+
+::-webkit-scrollbar-corner {
+    background: transparent; /* For the corner when both scrollbars are visible */
+}
+
+/* Apply to specific scrollable elements if you want to ensure they pick it up,
+   though the global ::-webkit-scrollbar should cover most cases.
+   This is mostly for completeness or if overrides are ever needed. */
+.scrollable-content-wrapper::-webkit-scrollbar,
+.mode-tabs-container::-webkit-scrollbar,
+.leaderboard ol::-webkit-scrollbar,
+.replays-mode-list::-webkit-scrollbar,
+#exportReplayTextArea::-webkit-scrollbar,
+#importReplayTextArea::-webkit-scrollbar {
+    /* These elements will inherit the global scrollbar styles above */
+}
 
 body #replaysScreen .replays-mode-list .replay-item .item-actions button.play-btn-geom,
 body #replaysScreen .replays-mode-list .replay-item .item-actions button.delete-btn-geom,
@@ -1133,14 +1193,6 @@ body #replaysScreen .replays-mode-list .replay-item .item-actions button.export-
 </head>
 <body>
 
-
-
-
-
-
-
-
-
     <div id="homeScreen" class="screen active">
         <h1>Orbila</h1>
         <button id="howToPlayBtn">
@@ -1159,7 +1211,7 @@ body #replaysScreen .replays-mode-list .replay-item .item-actions button.export-
             <svg class="menu-btn-icon" viewBox="0 0 512 512" version="1.1" xmlns="http://www.w3.org/2000/svg" xml:space="preserve">
                  <g> <path d="M410.842,207.265c97.767-8.626,117.891-54.628,89.098-97.749C448.234,32.075,334.016,1.59,218.762,36.607 C73.721,80.672-22.226,214.687,4.453,335.938C31.13,457.19,170.334,519.762,315.375,475.697 c62.951-19.13,116.653-55.201,155.091-99.821c15.516-18.01,20.891-73.726-50.998-70.844 C342.812,308.106,332.197,214.206,410.842,207.265z M385.949,102.144c7.068-7.059,16.84-11.111,26.839-11.111 c9.998,0,19.762,4.052,26.838,11.111c7.067,7.076,11.119,16.848,11.119,26.847s-4.052,19.762-11.119,26.838 c-7.076,7.067-16.84,11.12-26.838,11.12c-9.999,0-19.771-4.052-26.839-11.12c-7.067-7.076-11.119-16.839-11.119-26.838 S378.882,109.22,385.949,102.144z M65.256,226.724c5.711-17.185,24.26-26.485,41.436-20.782 c17.185,5.711,26.493,24.261,20.79,41.437c-5.711,17.184-24.269,26.484-41.438,20.789C68.861,262.449,59.553,243.9,65.256,226.724z M127.946,377.433c-11.794,12.451-31.455,12.998-43.905,1.214c-12.459-11.793-12.998-31.446-1.204-43.896 c11.785-12.459,31.437-13.006,43.896-1.213C139.182,345.323,139.73,364.975,127.946,377.433z M190.542,171.051 c-15.466,11.128-37.031,7.606-48.159-7.86c-11.128-15.474-7.606-37.03,7.859-48.159v-0.008 c15.475-11.119,37.032-7.598,48.159,7.868C209.53,138.358,206.009,159.923,190.542,171.051z M250.461,105.589 c-2.317-19.88,11.919-37.857,31.8-40.165c19.872-2.308,37.857,11.929,40.165,31.8c2.316,19.872-11.928,37.856-31.801,40.164 C270.746,139.706,252.769,125.461,250.461,105.589z M360.897,377.106c0,12.121-4.911,23.948-13.478,32.524 c-8.567,8.566-20.411,13.478-32.533,13.478c-12.113,0-23.965-4.912-32.524-13.478c-8.566-8.576-13.478-20.403-13.478-32.524 c0-12.122,4.912-23.974,13.478-32.542c8.559-8.559,20.411-13.47,32.524-13.47c12.122,0,23.966,4.911,32.533,13.47 C355.986,353.131,360.897,364.983,360.897,377.106z"></path> </g>
             </svg>
-            Cosmetic
+            Cosmetics
         </button>
         <button id="settingsBtn">
             <svg class="menu-btn-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="currentColor" stroke-width="0.00024">
@@ -1444,7 +1496,7 @@ body #replaysScreen .replays-mode-list .replay-item .item-actions button.export-
         </div>
     </div>
     <div id="appearanceScreen" class="screen">
-        <div class="screen-header"><h2>Cosmetic</h2><button id="appearanceToHomeBtnIcon" class="screen-header-btn home-icon-btn" title="Back to Home"> 
+        <div class="screen-header"><h2>Cosmetics</h2><button id="appearanceToHomeBtnIcon" class="screen-header-btn home-icon-btn" title="Back to Home"> 
              <svg fill="#ffffff" viewBox="0 0 24 24" class="home-svg-icon" version="1.2" baseProfile="tiny" xmlns="http://www.w3.org/2000/svg"><path d="M12 3s-6.186 5.34-9.643 8.232c-.203.184-.357.452-.357.768 0 .553.447 1 1 1h2v7c0 .553.447 1 1 1h3c.553 0 1-.448 1-1v-4h4v4c0 .552.447 1 1 1h3c.553 0 1-.447 1-1v-7h2c.553 0 1-.447 1-1 0-.316-.154-.584-.383-.768-3.433-2.892-9.617-8.232-9.617-8.232z"></path></svg>
         </button></div>
         <div id="appearanceScreenContent" class="scrollable-content-wrapper">
@@ -1605,7 +1657,7 @@ body #replaysScreen .replays-mode-list .replay-item .item-actions button.export-
             <svg class="cancel-svg-icon" viewBox="-10.24 -10.24 532.48 532.48" xmlns="http://www.w3.org/2000/svg"><path d="M256,0C114.6,0,0,114.6,0,256s114.6,256,256,256s256-114.6,256-256S397.4,0,256,0z M64,256c0-106.1,86-192,192-192 c42.1,0,81,13.7,112.6,36.7L100.7,368.6C77.7,337,64,298.1,64,256z M256,448c-42.1,0-81-13.7-112.6-36.7l267.9-267.9 c23,31.7,36.7,70.5,36.7,112.6C448,362.1,362,448,256,448z"></path></svg>
             Cancel
         </button>
-<div id="replayLimitNotification" style="display:none; position:fixed; top: 20px; left: 50%; transform: translateX(-50%); background-color: #1a1a1a; color: red; padding: 10px 20px; border-radius: 5px;  border: 3px solid #555; z-index: 300; font-size: 1.1em; text-align: center;">
+<div id="replayLimitNotification" style="display:none; position:fixed; top: 20px; left: 50%; transform: translateX(-50%); background-color: #1a1a1a; color: red; padding: 10px 20px; border-radius: 5px;  border: 3px solid #2c2c34; z-index: 300; font-size: 1.1em; text-align: center;">
         Replay Limit Reached!
     </div>
 <script>
@@ -1767,6 +1819,59 @@ let currentEquippedCosmetics = { ...R_COSMETIC_DEFAULTS };
 let rateBasedTrailNextSpawnTime = {};
 
 
+function enableInactiveScrollingForPrimaryWrapper() {
+    document.body.addEventListener('wheel', function(event) {
+        const activeScreen = document.querySelector('.screen.active');
+        if (!activeScreen) return;
+
+        // Check if the event target or its parents are already scrollable
+        let target = event.target;
+        let isTargetScrollableOrInsideScrollable = false;
+        while (target && target !== document.body) {
+            const style = window.getComputedStyle(target);
+            if (style.overflowY === 'auto' || style.overflowY === 'scroll' ||
+                style.overflowX === 'auto' || style.overflowX === 'scroll') {
+                if (target.scrollHeight > target.clientHeight || target.scrollWidth > target.clientWidth) {
+                    isTargetScrollableOrInsideScrollable = true;
+                    break;
+                }
+            }
+            // Also check if the target is an input/textarea that might have its own scroll
+            if (target.tagName === 'TEXTAREA' || (target.tagName === 'INPUT' && target.type !== 'range' && target.type !== 'button' && target.type !== 'submit' && target.type !== 'reset')) {
+                 if (target.scrollHeight > target.clientHeight || target.scrollWidth > target.clientWidth) {
+                    isTargetScrollableOrInsideScrollable = true;
+                    break;
+                 }
+            }
+             // Check for contentEditable elements that might be scrollable
+            if (target.isContentEditable && (target.scrollHeight > target.clientHeight || target.scrollWidth > target.clientWidth)) {
+                isTargetScrollableOrInsideScrollable = true;
+                break;
+            }
+
+            target = target.parentElement;
+        }
+
+        if (isTargetScrollableOrInsideScrollable) {
+            // If the mouse is already over a scrollable element (or textarea/input that might scroll),
+            // let the browser handle it normally.
+            return;
+        }
+
+        // Find the primary scrollable wrapper in the active screen
+        const primaryScroller = activeScreen.querySelector('.scrollable-content-wrapper');
+
+        if (primaryScroller && (primaryScroller.scrollHeight > primaryScroller.clientHeight || primaryScroller.scrollWidth > primaryScroller.clientWidth)) {
+            // Prevent default body scroll only if we are going to scroll the primaryScroller
+            event.preventDefault();
+            primaryScroller.scrollTop += event.deltaY;
+            primaryScroller.scrollLeft += event.deltaX;
+        }
+        // If no specific primaryScroller, or it's not actually scrollable,
+        // the event will propagate and scroll the body/window if possible.
+
+    }, { passive: false }); // passive: false is needed for event.preventDefault()
+}
 
 function fnIPRNG(seed) { pState.x = seed | 0; pState.y = (pState.x ^ 0xDEADBEEF) | 0; pState.z = (pState.y ^ 0xFACEFEED) | 0; pState.w = (pState.z ^ 0xC0FFEE) | 0; if (pState.x === 0 && pState.y === 0 && pState.z === 0 && pState.w === 0) { pState.w = 1;}}
 function fnSRnd() { let t = pState.x; t ^= t << 11; t ^= t >>> 8; pState.x = pState.y; pState.y = pState.z; pState.z = pState.w; pState.w ^= pState.w >>> 19; pState.w ^= t; return (pState.w >>> 0) / 0x100000000;}
@@ -7011,6 +7116,7 @@ window.onload=()=>{
     if (gameOverScreen && gameOverScreen.style.display === 'flex') {
         redrawStaticFrame();
     }
+    enableInactiveScrollingForPrimaryWrapper();
 };
 </script>
 </body>
